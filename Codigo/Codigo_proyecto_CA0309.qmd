@@ -3,3 +3,26 @@ title: "Codigo_proyecto_CA0309"
 format: html
 editor: visual
 ---
+
+# Construcción de la base de la proyección 
+
+```{r}
+library(readxl)
+library(here)
+library(dplyr)
+# La base de proyeccion solo contempla a la poblacion activa, en la primera hoja del Excel
+base_proyeccion <- read_excel(here("Base_datos", "Población_CA-0309.xlsx"), sheet = 1)
+# Se verifica que los tipos de datos sean de cada columna sean los correctos 
+str(base_proyeccion)
+# Se elimina la columna de fecha de defuncion 
+base_proyeccion <-  base_proyeccion %>%
+  select(-`Fecha Defuncion`)
+# Se modifica la columna de la fecha de nacimiento y la fecha de ingreso a tipo date 
+base_proyeccion$`Fecha Nacimiento` <- as.Date(base_proyeccion$`Fecha Nacimiento`)
+base_proyeccion$`Fecha Ingreso` <- as.Date(base_proyeccion$`Fecha Ingreso`)
+# Se modifica la columna de ID a tipo numerico 
+base_proyeccion$`Id Asociado` <- as.integer(base_proyeccion$`Id Asociado`)
+
+
+```
+
