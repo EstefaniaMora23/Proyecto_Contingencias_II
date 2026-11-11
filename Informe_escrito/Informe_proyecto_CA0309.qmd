@@ -23,4 +23,20 @@ format:
             - \usepackage{hyperref}
    include-before-body: Portada.tex
 ---
+# A. Población, decrementos y multiestado
+# B. Varias vidas
+# C. Flujos, reservas suministradas y profit testing
+# D. Escenario adverso y respaldo de las reservas
+# E. Equity-linked y rentabilidad estocástica
+# F. Interpretación conceptual de NIIF 17
+
+## 1. ¿Qué flujos del contrato considerarían en su medición inicial y qué función cumple el ajuste por riesgo no financiero, RA?
+
+
+
+## 2. ¿Qué representa la CSM y qué diferencia existe entre el tratamiento inicial de un grupo de contratos rentable y uno oneroso?
+
+## 3. ¿Por qué un NPV positivo en *profit testing* no permite concluir por sí solo que exista una CSM positiva? Consideren propósito, supuestos y componentes de ambas mediciones.
+
+## 4. ¿Por qué CSM, reserva suministrada y efectivo disponible son conceptos distintos?
 
