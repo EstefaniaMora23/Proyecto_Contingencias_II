@@ -4,25 +4,115 @@ format: html
 editor: visual
 ---
 
-# Construcción de la base de la proyección 
+# Construcción de la base de la proyección
 
-```{r}
+```{r, warning= False}
 library(readxl)
 library(here)
 library(dplyr)
 # La base de proyeccion solo contempla a la poblacion activa, en la primera hoja del Excel
-base_proyeccion <- read_excel(here("Base_datos", "Población_CA-0309.xlsx"), sheet = 1)
-# Se verifica que los tipos de datos sean de cada columna sean los correctos 
-str(base_proyeccion)
-# Se elimina la columna de fecha de defuncion 
-base_proyeccion <-  base_proyeccion %>%
-  select(-`Fecha Defuncion`)
-# Se modifica la columna de la fecha de nacimiento y la fecha de ingreso a tipo date 
-base_proyeccion$`Fecha Nacimiento` <- as.Date(base_proyeccion$`Fecha Nacimiento`)
-base_proyeccion$`Fecha Ingreso` <- as.Date(base_proyeccion$`Fecha Ingreso`)
-# Se modifica la columna de ID a tipo numerico 
-base_proyeccion$`Id Asociado` <- as.integer(base_proyeccion$`Id Asociado`)
+base_proyeccion_original <- read_excel(here("Base_datos", "Población_CA-0309.xlsx"), sheet = 1)
 
+# Se verifica que los tipos de datos sean de cada columna sean los correctos 
+str(base_proyeccion_original)
+
+# Se modifica la columna de la fecha de nacimiento y la fecha de ingreso a tipo date 
+base_proyeccion_original$`Fecha Nacimiento` <- as.Date(base_proyeccion_original$`Fecha Nacimiento`)
+base_proyeccion_original$`Fecha Ingreso` <- as.Date(base_proyeccion_original$`Fecha Ingreso`)
+
+# Se calcula la edad cumplida a la fecha de referencia 
+fecha_referencia <- as.Date("2025-12-31")
+base_proyeccion_original <- base_proyeccion_original %>% 
+  mutate(
+    Edad = as.integer(format(fecha_referencia, "%Y")) - as.integer(format(`Fecha Nacimiento`, "%Y"))
+  )
+
+# Se revisa que las entradas tengan una fecha de nacimiento valida
+# Se revisan si existen fechas de nacimiento faltantes
+sin_nacimiento <-  sum(is.na(base_proyeccion_original$`Fecha Nacimiento`))
+print(sin_nacimiento)
+# Se excluyen los registros sin fecha de nacimiento
+base_proyeccion_depurada <- base_proyeccion_original %>%
+  filter(!is.na(`Fecha Nacimiento`))
+# Se revisa si existen fechas de nacimiento posteriores a la fecha de referencia
+nacimientos_posteriores <- base_proyeccion_depurada %>%
+  filter(`Fecha Nacimiento` > fecha_referencia) %>%
+  nrow()
+print(nacimientos_posteriores)
+# No se encontraron nacimientos posteriores
+
+# Se revisa que las entradas tengan un sexo valido
+# Se revisan las categorias dentro de la columna
+table(base_proyeccion_depurada$Genero, useNA = "always")
+sin_sexo <-  sum(is.na(base_proyeccion_depurada$Genero))
+print(sin_sexo)
+# Se excluyen los registros sin sexo
+base_proyeccion_depurada <- base_proyeccion_depurada %>%
+  filter(!is.na(`Genero`))
+
+# Se revisa que las entradas tengan una edad valida: [0, 106]
+edades_invalidas <- sum(
+  is.na(base_proyeccion_depurada$Edad) |
+  base_proyeccion_depurada$Edad < 0 |
+  base_proyeccion_depurada$Edad > 106
+)
+print(edades_invalidas)
+# Se excluyen los registros con edades invalidas
+base_proyeccion_depurada <- base_proyeccion_depurada %>%
+  filter(
+    !is.na(Edad),
+    Edad >= 0,
+    Edad <= 106
+  )
+
+# Se revisa si existen entradas duplicadas 
+duplicados_df <- base_proyeccion_depurada %>%
+  group_by(`Id Asociado`) %>%
+  filter(n() > 1) %>%
+  arrange(`Id Asociado`)
+
+#View(duplicados_df)
+duplicados <- nrow(duplicados_df)
+print(duplicados)
+# No se encontraron entradas duplicadas 
+
+# Se revisa que la columna de la fecha de defuncion no posea registros 
+con_fecha_defuncion_df <-  base_proyeccion_depurada %>% 
+  filter(!is.na(`Fecha Defuncion`))
+
+#View(con_fecha_defuncion_df)
+con_fecha_defuncion <- nrow(con_fecha_defuncion_df)
+print(con_fecha_defuncion)
+# No se encontraron activos con fecha de defuncion registrada 
+
+# Se comprueba que los activos no aparezcan en la hoja de fallecidos o inactivos
+fallecidos_df <- read_excel(here("Base_datos", "Población_CA-0309.xlsx"), sheet = 2)
+inactivos_df <- read_excel(here("Base_datos", "Población_CA-0309.xlsx"), sheet = 3)
+
+# Se revisa el caso de activos - fallecidos
+activos_en_fallecidos <- base_proyeccion_depurada %>%
+  semi_join(fallecidos_df, by = "Id Asociado")
+
+activos_fallecidos <- nrow(activos_en_fallecidos)
+print(activos_fallecidos)
+# Concluya que no hay personas activas en la base de fallecidos 
+
+# Se revisa el caso de activos - inactivos
+activos_en_inactivos <- base_proyeccion_depurada %>%
+  semi_join(inactivos_df, by = "Id Asociado")
+
+activos_inactivos <- nrow(activos_en_inactivos)
+print(activos_inactivos)
+# Concluya que no hay personas activas en la base de inactivos
+
+# Se comprueba que la poblacion inicial tras efectuar las depuraciones coincida 
+poblacion_inicial_borrador <- nrow(base_proyeccion_depurada)
+poblacion_inicial_comprobacion <- nrow(base_proyeccion_original) - sin_nacimiento - nacimientos_posteriores - sin_sexo - edades_invalidas - duplicados - con_fecha_defuncion
+print(poblacion_inicial_borrador == poblacion_inicial_comprobacion)
+# Concluya que los calculos coinciden 
+
+# Se definen finalmente, las dos variables a emplear en las proyecciones 
+base_proyeccion <- base_proyeccion_depurada
+poblacion_inicial <- poblacion_inicial_borrador
 
 ```
-
