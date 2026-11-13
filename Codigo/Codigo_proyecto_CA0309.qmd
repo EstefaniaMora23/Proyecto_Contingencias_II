@@ -105,7 +105,7 @@ activos_inactivos <- nrow(activos_en_inactivos)
 print(activos_inactivos)
 # Concluya que no hay personas activas en la base de inactivos
 
-# Se comprueba que la poblacion inicial tras efectuar las depuraciones coincida 
+# Se comprueba que la poblacion inicial, tras efectuar las depuraciones, coincida 
 poblacion_inicial_borrador <- nrow(base_proyeccion_depurada)
 poblacion_inicial_comprobacion <- nrow(base_proyeccion_original) - sin_nacimiento - nacimientos_posteriores - sin_sexo - edades_invalidas - duplicados - con_fecha_defuncion
 print(poblacion_inicial_borrador == poblacion_inicial_comprobacion)
@@ -116,3 +116,80 @@ base_proyeccion <- base_proyeccion_depurada
 poblacion_inicial <- poblacion_inicial_borrador
 
 ```
+## Sección A: Población, decrementos y multiestado
+```{r}
+# Se carga la base de la mortalidad de decremento unico
+base_mortalidad_decremento_unico <- read.csv(here("Base_datos", "CA0309_Mortalidad_CR2023.csv"))
+# Se verifica que las columnas sean del tipo de dato adecuado
+str(base_mortalidad_decremento_unico)
+View(base_mortalidad_decremento_unico)
+
+# Se define la renuncia anual de decremento unico
+renuncia_decremento_unico <- 0.03
+```
+```{r}
+# Se procede a calcular las probabilidades dependientes de permanencia, fallecimiento y renuncia suponiendo fuerzas constantes dentro de cada año
+
+# Probabilidades dependientes para las mujeres 
+base_decrementos_multiples_mujeres <- data.frame(
+  "Edad" = base_mortalidad_decremento_unico$edad,
+  "qx_prima_muerte" = base_mortalidad_decremento_unico$qx_femenino,
+  "qx_prima_renuncia" = rep(0.03, 111),
+  "px_prima_muerte" = 1 - base_mortalidad_decremento_unico$qx_femenino,
+  "px_prima_renuncia" = rep(1-0.03, 111)) 
+
+# Se verifica que las probabilidades de permanencia de decremento unico sean correctas
+#View(base_decrementos_multiples_mujeres)
+
+# Se continua con el calculo correspondiente 
+base_decrementos_multiples_mujeres <- base_decrementos_multiples_mujeres %>% 
+  mutate(
+    ux_muerte = -log(px_prima_muerte),
+    ux_renuncia = -log(px_prima_renuncia),
+    ux_tau = ux_muerte + ux_renuncia,
+    px_tau = px_prima_muerte * px_prima_renuncia,
+    qx_tau = 1 - px_tau,
+    qx_dependiente_muerte = (ux_muerte/ux_tau) * qx_tau,
+    qx_dependiente_renuncia = (ux_renuncia/ux_tau) * qx_tau
+  )
+View(base_decrementos_multiples_mujeres)
+
+# Probabilidades dependientes para los hombres
+base_decrementos_multiples_hombres <- data.frame(
+  "Edad" = base_mortalidad_decremento_unico$edad,
+  "qx_prima_muerte" = base_mortalidad_decremento_unico$qx_masculino,
+  "qx_prima_renuncia" = rep(0.03, 111),
+  "px_prima_muerte" = 1 - base_mortalidad_decremento_unico$qx_masculino,
+  "px_prima_renuncia" = rep(1-0.03, 111)) 
+
+# Se verifica que las probabilidades de permanencia de decremento unico sean correctas
+View(base_decrementos_multiples_hombres)
+
+# Se continua con el calculo correspondiente 
+base_decrementos_multiples_hombres <- base_decrementos_multiples_hombres %>% 
+  mutate(
+    ux_muerte = -log(px_prima_muerte),
+    ux_renuncia = -log(px_prima_renuncia),
+    ux_tau = ux_muerte + ux_renuncia,
+    px_tau = px_prima_muerte * px_prima_renuncia,
+    qx_tau = 1 - px_tau,
+    qx_dependiente_muerte = (ux_muerte/ux_tau) * qx_tau,
+    qx_dependiente_renuncia = (ux_renuncia/ux_tau) * qx_tau
+  )
+View(base_decrementos_multiples_hombres)
+
+```
+
+```{r}
+# Se agrupa por edad y sexo la base de proyeccion
+base_proyeccion_agrupada <- base_proyeccion %>% 
+  group_by(Edad, Genero) %>%
+  summarise(Poblacion = n()) %>%
+  arrange(Edad, Genero)
+
+View(base_proyeccion_agrupada)
+
+
+
+```
+
