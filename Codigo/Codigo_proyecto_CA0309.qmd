@@ -218,7 +218,11 @@ print(poblacion_inicial == sum(base_proyeccion_hombres$Activos) + sum(base_proye
 
 ```{r}
 # Se inicializa la poblacion activa de mujeres
-activas_mujeres <- base_proyeccion_mujeres
+activas_mujeres <- base_proyeccion_mujeres %>% 
+  mutate(
+    Renuncias_acumuladas = 0,
+    Fallecimientos_acumulados = 0
+  )
 
 # Se crea una lista para almacenar resultados
 resultados_proyeccion_mujeres <- list()
@@ -236,9 +240,11 @@ for (i in 1:5) {
   calculo_proyeccion_mujeres <- calculo_proyeccion_mujeres %>%
     mutate(
       Anio = 2025 + i,
-      Fallecimientos = Activas * qx_dependiente_muerte,
-      Renuncias = Activas * qx_dependiente_renuncia,
-      Activas_finales = Activas * px_tau
+      Fallecimientos_anuales = Activas * qx_dependiente_muerte,
+      Renuncias_anuales = Activas * qx_dependiente_renuncia,
+      Activas_finales = Activas * px_tau, 
+      Renuncias_acumuladas = Renuncias_acumuladas + Renuncias_anuales,
+      Fallecimientos_acumulados = Fallecimientos_acumulados + Fallecimientos_anuales
     )
 
   # Se almacenan los resultados en la lista creada
@@ -247,16 +253,20 @@ for (i in 1:5) {
       Anio,
       Edad,
       Activas_iniciales = Activas,
-      Fallecimientos,
-      Renuncias,
-      Activas_finales
+      Fallecimientos_anuales,
+      Renuncias_anuales,
+      Activas_finales,
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
     )
 
   # Se traslada a las sobrevivientes a la siguiente edad
   activas_mujeres <- calculo_proyeccion_mujeres %>%
     transmute(
       Edad = Edad + 1,
-      Activas = Activas_finales
+      Activas = Activas_finales, 
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
     ) 
 }
 
@@ -280,7 +290,11 @@ View(proyeccion_mujeres_2030)
 
 ```{r}
 # Se inicializa la poblacion activa de mujeres
-activos_hombres <- base_proyeccion_hombres
+activos_hombres <- base_proyeccion_hombres %>% 
+  mutate(
+    Renuncias_acumuladas = 0,
+    Fallecimientos_acumulados = 0
+  )
 
 # Se crea una lista para almacenar resultados
 resultados_proyeccion_hombres <- list()
@@ -298,9 +312,11 @@ for (i in 1:5) {
   calculo_proyeccion_hombres <- calculo_proyeccion_hombres %>%
     mutate(
       Anio = 2025 + i,
-      Fallecimientos = Activos * qx_dependiente_muerte,
-      Renuncias = Activos * qx_dependiente_renuncia,
-      Activos_finales = Activos * px_tau
+      Fallecimientos_anuales = Activos * qx_dependiente_muerte,
+      Renuncias_anuales = Activos * qx_dependiente_renuncia,
+      Activos_finales = Activos * px_tau, 
+      Renuncias_acumuladas = Renuncias_acumuladas + Renuncias_anuales,
+      Fallecimientos_acumulados = Fallecimientos_acumulados + Fallecimientos_anuales
     )
 
   # Se almacenan los resultados en la lista creada
@@ -309,16 +325,20 @@ for (i in 1:5) {
       Anio,
       Edad,
       Activos_iniciales = Activos,
-      Fallecimientos,
-      Renuncias,
-      Activos_finales
+      Fallecimientos_anuales,
+      Renuncias_anuales,
+      Activos_finales, 
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
     )
 
   # Se traslada a las sobrevivientes a la siguiente edad
   activos_hombres <- calculo_proyeccion_hombres %>%
     transmute(
       Edad = Edad + 1,
-      Activos = Activos_finales
+      Activos = Activos_finales, 
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
     ) 
 }
 
@@ -336,4 +356,280 @@ View(proyeccion_hombres_2029)
 View(proyeccion_hombres_2030)
 
 ```
+
+### Matrices de transicion
+
+```{r}
+# Funcion de verificacion: cada fila debe sumar una unidad 
+# Dada la precision decimal limitada de la computadora, se trabaja con la tolerancia de un error pequeño 
+
+verificar_suma_filas_P <- function(lista_P){
+  suma_unidad = TRUE
+  for (i in 1:length(lista_P)){
+    suma_filas_matriz_actual = rowSums(lista_P[[i]])
+    for (j in 1:length(suma_filas_matriz_actual)){
+      if (any(abs(suma_filas_matriz_actual - 1) > 1e-10)){
+        suma_unidad = FALSE
+        return(suma_unidad)
+      }
+    }
+  }
+  return(suma_unidad)
+}
+```
+
+
+#### Construccion de las matriz de transicion: mujeres 
+
+```{r}
+# Se construyen las matrices de intensidades instantaneas
+Q_mujeres <- lapply(
+  1:nrow(base_decrementos_multiples_mujeres),
+  function(i) {
+    u_muerte <- base_decrementos_multiples_mujeres$ux_muerte[i]
+    u_renuncia <- base_decrementos_multiples_mujeres$ux_renuncia[i]
+
+    matrix(
+      c(
+        -(u_muerte + u_renuncia), u_renuncia, u_muerte,
+        0, 0, 0,
+        0, 0, 0
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(
+        c("Activo", "Renuncia", "Fallecimiento"),
+        c("Activo", "Renuncia", "Fallecimiento")
+      )
+    )
+  }
+)
+
+# Se construyen las matrices de transicion a partir de la ecuacion de Kolomogorov
+library(expm)
+P_mujeres <- lapply(
+  Q_mujeres,
+  function(Q) {
+    expm(Q)
+  }
+)
+
+# Se verifica que la filas de cada matriz sumen una unidad
+verificacion_P_mujeres <- verificar_suma_filas_P(P_mujeres)
+verificacion_P_mujeres
+```
+
+#### Construccion de las matriz de transicion: hombres
+
+```{r}
+# Se construyen las matrices de intensidades instantaneas
+Q_hombres <- lapply(
+  1:nrow(base_decrementos_multiples_hombres),
+  function(i) {
+    u_muerte <- base_decrementos_multiples_hombres$ux_muerte[i]
+    u_renuncia <- base_decrementos_multiples_hombres$ux_renuncia[i]
+
+    matrix(
+      c(
+        -(u_muerte + u_renuncia), u_renuncia, u_muerte,
+        0, 0, 0,
+        0, 0, 0
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(
+        c("Activo", "Renuncia", "Fallecimiento"),
+        c("Activo", "Renuncia", "Fallecimiento")
+      )
+    )
+  }
+)
+
+# Se construyen las matrices de transicion a partir de la ecuacion de Kolomogorov
+library(expm)
+P_hombres <- lapply(
+  Q_hombres,
+  function(Q) {
+    expm(Q)
+  }
+)
+
+# Se verifica que la filas de cada matriz sumen una unidad
+verificacion_P_hombres <- verificar_suma_filas_P(P_hombres)
+verificacion_P_hombres
+```
+
+### Proyeccion a partir de las matrices de transicion: mujeres 
+
+```{r}
+# Se inicializa la poblacion de mujeres
+estado_inicial_mujeres <- base_proyeccion_mujeres %>%
+  transmute(
+    Edad,
+    Activo = Activas,
+    Renuncia = 0,
+    Fallecimiento = 0
+  )
+
+# Se crea una lista para almacenar los resultados de cada año
+resultados_mujeres_P <- list()
+
+# Se realiza la proyeccion a cinco años
+for (t in 1:5) {
+
+  # Se crea una lista para almacenar los resultados del año
+  resultados_anuales_mujeres_P = list()
+
+  for (i in 1:nrow(estado_inicial_mujeres)) {
+
+    edad_actual = estado_inicial_mujeres$Edad[i]
+
+    # Se busca el indice de la matriz correspondiente a la edad actual
+    indice_matriz = match(
+      edad_actual,
+      base_decrementos_multiples_mujeres$Edad
+    )
+
+   
+
+    # Se obtiene la matriz de transicion para la edad
+    P = P_mujeres[[indice_matriz]]
+
+    # Se crea el vector de estados iniciales
+    estados_inicio_anio = c(
+      estado_inicial_mujeres$Activo[i],
+      estado_inicial_mujeres$Renuncia[i],
+      estado_inicial_mujeres$Fallecimiento[i]
+    )
+
+    # Se calculan los estados finales
+    estados_acumulados_final_anio = as.numeric(estados_inicio_anio %*% P)
+
+    # Se almacenan los resultados
+    resultados_anuales_mujeres_P[[i]] = data.frame(
+      Anio = 2025 + t,
+      Edad = edad_actual,
+      Activas_iniciales = estados_inicio_anio[1],
+      Renuncias_anuales = estados_inicio_anio[1] * P[1, 2],
+      Fallecimientos_anuales = estados_inicio_anio[1] * P[1, 3],
+      Activas_finales = estados_acumulados_final_anio[1],
+      Renuncias_acumuladas = estados_acumulados_final_anio[2],
+      Fallecimientos_acumulados = estados_acumulados_final_anio[3]
+    )
+  }
+
+  # Se unen todas las edades del año correspondiente
+  resultados_mujeres_P[[t]] <- bind_rows(resultados_anuales_mujeres_P)
+
+  # Se realizan los cambios para el siguiente año
+  estado_inicial_mujeres = resultados_mujeres_P[[t]] %>%
+    transmute(
+      Edad + 1,
+      Activo = Activas_finales,
+      Renuncia = Renuncias_acumuladas,
+      Fallecimiento = Fallecimientos_acumulados
+    )
+}
+
+# Se guardan los resultados anuales en variables independientes
+proyeccion_mujeres_2026_P <- resultados_mujeres_P[[1]]
+proyeccion_mujeres_2027_P <- resultados_mujeres_P[[2]]
+proyeccion_mujeres_2028_P <- resultados_mujeres_P[[3]]
+proyeccion_mujeres_2029_P <- resultados_mujeres_P[[4]]
+proyeccion_mujeres_2030_P <- resultados_mujeres_P[[5]]
+
+View(proyeccion_mujeres_2026_P)
+View(proyeccion_mujeres_2027_P)
+View(proyeccion_mujeres_2028_P)
+View(proyeccion_mujeres_2029_P)
+View(proyeccion_mujeres_2030_P)
+
+```
+
+
+### Proyeccion a partir de las matrices de transicion: hombres 
+
+```{r}
+# Se inicializa la poblacion de mujeres
+estado_inicial_hombres <- base_proyeccion_hombres %>%
+  transmute(
+    Edad,
+    Activo = Activos,
+    Renuncia = 0,
+    Fallecimiento = 0
+  )
+
+# Se crea una lista para almacenar los resultados de cada año
+resultados_hombres_P <- list()
+
+# Se realiza la proyeccion a cinco años
+for (t in 1:5) {
+
+  # Se crea una lista para almacenar los resultados del año
+  resultados_anuales_hombres_P = list()
+
+  for (i in 1:nrow(estado_inicial_hombres)) {
+
+    edad_actual = estado_inicial_hombres$Edad[i]
+
+    # Se busca el indice de la matriz correspondiente a la edad actual
+    indice_matriz = match(
+      edad_actual,
+      base_decrementos_multiples_hombres$Edad
+    )
+
+    # Se obtiene la matriz de transicion para la edad
+    P = P_hombres[[indice_matriz]]
+
+    # Se crea el vector de estados iniciales
+    estados_inicio_anio = c(
+      estado_inicial_hombres$Activo[i],
+      estado_inicial_hombres$Renuncia[i],
+      estado_inicial_hombres$Fallecimiento[i]
+    )
+
+    # Se calculan los estados finales
+    estados_acumulados_final_anio = as.numeric(estados_inicio_anio %*% P)
+
+    # Se almacenan los resultados
+    resultados_anuales_hombres_P[[i]] = data.frame(
+      Anio = 2025 + t,
+      Edad = edad_actual,
+      Activos_iniciales = estados_inicio_anio[1],
+      Renuncias_anuales = estados_inicio_anio[1] * P[1, 2],
+      Fallecimientos_anuales = estados_inicio_anio[1] * P[1, 3],
+      Activos_finales = estados_acumulados_final_anio[1],
+      Renuncias_acumuladas = estados_acumulados_final_anio[2],
+      Fallecimientos_acumulados = estados_acumulados_final_anio[3]
+    )
+  }
+
+  # Se unen todas las edades del año correspondiente
+  resultados_hombres_P[[t]] <- bind_rows(resultados_anuales_hombres_P)
+
+  # Se realizan los cambios para el siguiente año
+  estado_inicial_hombres = resultados_hombres_P[[t]] %>%
+    transmute(
+      Edad + 1,
+      Activo = Activos_finales,
+      Renuncia = Renuncias_acumuladas,
+      Fallecimiento = Fallecimientos_acumulados
+    )
+}
+
+# Se guardan los resultados anuales en variables independientes
+proyeccion_hombres_2026_P <- resultados_hombres_P[[1]]
+proyeccion_hombres_2027_P <- resultados_hombres_P[[2]]
+proyeccion_hombres_2028_P <- resultados_hombres_P[[3]]
+proyeccion_hombres_2029_P <- resultados_hombres_P[[4]]
+proyeccion_hombres_2030_P <- resultados_hombres_P[[5]]
+
+View(proyeccion_hombres_2026_P)
+View(proyeccion_hombres_2027_P)
+View(proyeccion_hombres_2028_P)
+View(proyeccion_hombres_2029_P)
+View(proyeccion_hombres_2030_P)
+```
+
+
 
