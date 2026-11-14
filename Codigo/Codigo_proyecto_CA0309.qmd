@@ -116,6 +116,7 @@ base_proyeccion <- base_proyeccion_depurada
 poblacion_inicial <- poblacion_inicial_borrador
 
 ```
+
 ## Sección A: Población, decrementos y multiestado
 
 ### Bases de datos y supuestos
@@ -130,7 +131,6 @@ View(base_mortalidad_decremento_unico)
 # Se define la renuncia anual de decremento unico
 renuncia_decremento_unico <- 0.03
 ```
-
 
 ### Calculo de las probabilidades dependientes por sexo
 
@@ -214,7 +214,7 @@ print(poblacion_inicial == sum(base_proyeccion_hombres$Activos) + sum(base_proye
 
 ```
 
-### Proyeccion a cinco años: mujeres 
+### Proyeccion a cinco años: mujeres
 
 ```{r}
 # Se inicializa la poblacion activa de mujeres
@@ -285,8 +285,7 @@ View(proyeccion_mujeres_2030)
 
 ```
 
-
-###  Proyeccion a cinco años: hombres
+### Proyeccion a cinco años: hombres
 
 ```{r}
 # Se inicializa la poblacion activa de mujeres
@@ -378,8 +377,7 @@ verificar_suma_filas_P <- function(lista_P){
 }
 ```
 
-
-#### Construccion de las matriz de transicion: mujeres 
+#### Construccion de las matriz de transicion: mujeres
 
 ```{r}
 # Se construyen las matrices de intensidades instantaneas
@@ -459,7 +457,7 @@ verificacion_P_hombres <- verificar_suma_filas_P(P_hombres)
 verificacion_P_hombres
 ```
 
-### Proyeccion a partir de las matrices de transicion: mujeres 
+### Proyeccion a partir de las matrices de transicion: mujeres
 
 ```{r}
 # Se inicializa la poblacion de mujeres
@@ -546,8 +544,7 @@ View(proyeccion_mujeres_2030_P)
 
 ```
 
-
-### Proyeccion a partir de las matrices de transicion: hombres 
+### Proyeccion a partir de las matrices de transicion: hombres
 
 ```{r}
 # Se inicializa la poblacion de mujeres
@@ -632,4 +629,516 @@ View(proyeccion_hombres_2030_P)
 ```
 
 
+## Sección B: Varias vidas
 
+### Clasificación de activos y asignación de parejas hipotéticas
+
+```{r}
+# Se separan los registros con defunción informada, sin modificar la base original
+revision_defunciones_B <- base_proyeccion %>%
+  filter(!is.na(`Fecha Defuncion`))
+
+# Se crea una copia de la población inicial para trabajar únicamente en B
+base_B <- base_proyeccion %>%
+  filter(is.na(`Fecha Defuncion`)) %>%
+  transmute(
+    id = `Id Asociado`,
+    edad_activo = Edad,
+    sexo_activo = Genero
+  )
+
+# Se comprueba que las edades, los sexos y los identificadores sean utilizables
+stopifnot(
+  !anyDuplicated(base_B$id),
+  all(base_B$edad_activo >= 0 & base_B$edad_activo <= 106),
+  all(base_B$sexo_activo %in% c("Masculino", "Femenino"))
+)
+
+# Se asigna la pareja según la edad inicial del activo
+base_B <- base_B %>%
+  mutate(
+    tiene_pareja = edad_activo >= 30,
+
+    diferencia_edad = case_when(
+      edad_activo < 30 ~ NA_integer_,
+      edad_activo < 35 ~ 0L,
+      edad_activo < 55 ~ 3L,
+      TRUE ~ 5L
+    ),
+
+    sexo_conyuge = case_when(
+      !tiene_pareja ~ NA_character_,
+      sexo_activo == "Masculino" ~ "Femenino",
+      sexo_activo == "Femenino" ~ "Masculino"
+    ),
+
+    edad_conyuge = case_when(
+      !tiene_pareja ~ NA_real_,
+      sexo_activo == "Masculino" ~ edad_activo - diferencia_edad,
+      sexo_activo == "Femenino" ~ edad_activo + diferencia_edad
+    )
+  )
+
+# Se concilia la población recibida con la utilizada para clasificar en B
+revision_poblacion_B <- data.frame(
+  Concepto = c(
+    "Activos recibidos de la base común",
+    "Registros con defunción informada separados en B",
+    "Activos utilizados para clasificar en B"
+  ),
+  Cantidad = c(
+    nrow(base_proyeccion),
+    nrow(revision_defunciones_B),
+    nrow(base_B)
+  )
+)
+
+knitr::kable(revision_poblacion_B, row.names = FALSE)
+```
+
+### Agrupación de parejas y exclusiones propias de B
+
+```{r}
+# Se utiliza exclusivamente la mortalidad biológica de decremento único
+stopifnot(
+  !anyDuplicated(base_mortalidad_decremento_unico$edad)
+)
+
+# Función para consultar mortalidad según edad y sexo
+obtener_q_B <- function(edades, sexo) {
+
+  posiciones <- match(
+    edades,
+    base_mortalidad_decremento_unico$edad
+  )
+
+  if (sexo == "Masculino") {
+    base_mortalidad_decremento_unico$qx_masculino[posiciones]
+  } else {
+    base_mortalidad_decremento_unico$qx_femenino[posiciones]
+  }
+}
+
+# Se conservan las cantidades iniciales de cada cohorte de parejas
+cohortes_B <- base_B %>%
+  filter(tiene_pareja) %>%
+  count(
+    edad_activo,
+    sexo_activo,
+    edad_conyuge,
+    sexo_conyuge,
+    name = "n_inicial"
+  ) %>%
+  mutate(cohorte = row_number())
+
+# Se revisa la mortalidad necesaria para los cinco años
+cohortes_B <- cohortes_B %>%
+  rowwise() %>%
+  mutate(
+    mortalidad_disponible = {
+      probabilidades <- c(
+        obtener_q_B(edad_activo + (0:4), sexo_activo),
+        obtener_q_B(edad_conyuge + (0:4), sexo_conyuge)
+      )
+
+      all(
+        is.finite(probabilidades) &
+          probabilidades >= 0 &
+          probabilidades <= 1
+      )
+    },
+
+    motivo_exclusion_B = case_when(
+      edad_conyuge > 106 ~
+        "Edad inicial del cónyuge mayor que 106",
+
+      !mortalidad_disponible ~
+        "Mortalidad incompleta o no utilizable para los cinco años",
+
+      TRUE ~ NA_character_
+    ),
+
+    admisible_B = is.na(motivo_exclusion_B)
+  ) %>%
+  ungroup()
+
+# Se incorpora la admisibilidad a la clasificación individual
+base_B <- base_B %>%
+  left_join(
+    cohortes_B %>%
+      select(
+        edad_activo,
+        sexo_activo,
+        edad_conyuge,
+        sexo_conyuge,
+        cohorte,
+        motivo_exclusion_B,
+        admisible_B
+      ),
+    by = c(
+      "edad_activo",
+      "sexo_activo",
+      "edad_conyuge",
+      "sexo_conyuge"
+    )
+  ) %>%
+  mutate(
+    admisible_B = coalesce(admisible_B, FALSE),
+
+    clasificacion_B = case_when(
+      !tiene_pareja ~ "Sin pareja",
+      admisible_B ~ "Pareja admisible",
+      TRUE ~ "Pareja excluida solo de B"
+    )
+  )
+
+# Los menores de 30 no se consideran exclusiones por calidad
+exclusiones_B <- base_B %>%
+  filter(tiene_pareja, !admisible_B)
+
+cohortes_admisibles_B <- cohortes_B %>%
+  filter(admisible_B)
+
+resumen_parejas_B <- data.frame(
+  Concepto = c(
+    "Activos sin pareja",
+    "Activos con pareja hipotética",
+    "Exclusiones propias de B",
+    "Parejas admisibles"
+  ),
+  Cantidad = c(
+    sum(!base_B$tiene_pareja),
+    sum(base_B$tiene_pareja),
+    nrow(exclusiones_B),
+    sum(cohortes_admisibles_B$n_inicial)
+  )
+)
+
+knitr::kable(resumen_parejas_B, row.names = FALSE)
+
+if (nrow(exclusiones_B) > 0) {
+  knitr::kable(
+    exclusiones_B %>%
+      select(
+        id,
+        edad_activo,
+        sexo_activo,
+        edad_conyuge,
+        sexo_conyuge,
+        motivo_exclusion_B
+      ),
+    row.names = FALSE
+  )
+}
+```
+
+### Probabilidades de los tres estatus durante cinco años
+
+```{r}
+# Se mantienen las parejas y las diferencias de edad asignadas al inicio
+# No se aplica renuncia ni se utiliza la población proyectada de A
+stopifnot(nrow(cohortes_admisibles_B) > 0)
+
+resultados_cohortes_B <- lapply(
+  seq_len(nrow(cohortes_admisibles_B)),
+  function(j) {
+
+    cohorte_actual <- cohortes_admisibles_B[j, ]
+    t <- 1:5
+
+    # Edades al inicio de cada año
+    edades_activo <- cohorte_actual$edad_activo + t - 1
+    edades_conyuge <- cohorte_actual$edad_conyuge + t - 1
+
+    q_activo <- obtener_q_B(
+      edades_activo,
+      cohorte_actual$sexo_activo
+    )
+
+    q_conyuge <- obtener_q_B(
+      edades_conyuge,
+      cohorte_actual$sexo_conyuge
+    )
+
+    # Supervivencia acumulada desde el inicio hasta cada cierre anual
+    supervivencia_activo <- cumprod(1 - q_activo)
+    supervivencia_conyuge <- cumprod(1 - q_conyuge)
+
+    data.frame(
+      cohorte = cohorte_actual$cohorte,
+      edad_activo = cohorte_actual$edad_activo,
+      sexo_activo = cohorte_actual$sexo_activo,
+      edad_conyuge = cohorte_actual$edad_conyuge,
+      sexo_conyuge = cohorte_actual$sexo_conyuge,
+      n_inicial = cohorte_actual$n_inicial,
+      t = t,
+      Anio = 2025 + t,
+      edad_activo_anual = edades_activo,
+      edad_conyuge_anual = edades_conyuge,
+      q_activo = q_activo,
+      q_conyuge = q_conyuge,
+      supervivencia_activo = supervivencia_activo,
+      supervivencia_conyuge = supervivencia_conyuge
+    )
+  }
+)
+
+probabilidades_B <- bind_rows(resultados_cohortes_B) %>%
+  mutate(
+    p_ambos = supervivencia_activo * supervivencia_conyuge,
+
+    p_ultimo = supervivencia_activo +
+      supervivencia_conyuge - p_ambos,
+
+    p_conyuge = (1 - supervivencia_activo) *
+      supervivencia_conyuge,
+
+    # Estados auxiliares para verificar las probabilidades
+    p_solo_activo = supervivencia_activo *
+      (1 - supervivencia_conyuge),
+
+    p_ninguno = (1 - supervivencia_activo) *
+      (1 - supervivencia_conyuge)
+  )
+```
+
+### Pagos unitarios esperados al cierre de cada año
+
+```{r}
+# Cada estatus genera una cobertura alternativa
+# La ponderación utiliza siempre la cantidad inicial de cada cohorte
+resultados_B <- probabilidades_B %>%
+  mutate(
+    pagos_ambos = n_inicial * p_ambos,
+    pagos_ultimo = n_inicial * p_ultimo,
+    pagos_conyuge = n_inicial * p_conyuge
+  )
+
+pagos_anuales_B <- resultados_B %>%
+  group_by(t, Anio) %>%
+  summarise(
+    Ambos_vivos = sum(pagos_ambos),
+    Al_menos_uno_vivo = sum(pagos_ultimo),
+    Conyuge_vivo_activo_fallecido = sum(pagos_conyuge),
+    .groups = "drop"
+  )
+
+knitr::kable(
+  pagos_anuales_B,
+  digits = 4,
+  row.names = FALSE
+)
+```
+
+### Valores presentes de las rentas unitarias
+
+```{r}
+# Tasa anual efectiva de descuento del proyecto
+descuento_B <- 0.04
+
+# Los pagos se realizan al cierre de cada año
+resultados_B <- resultados_B %>%
+  mutate(
+    factor_descuento = (1 + descuento_B)^(-t),
+
+    VP_ambos = pagos_ambos * factor_descuento,
+    VP_ultimo = pagos_ultimo * factor_descuento,
+    VP_conyuge = pagos_conyuge * factor_descuento
+  )
+
+# Valores presentes unitarios y agregados por cohorte
+VP_cohortes_B <- resultados_B %>%
+  group_by(
+    cohorte,
+    edad_activo,
+    sexo_activo,
+    edad_conyuge,
+    sexo_conyuge,
+    n_inicial
+  ) %>%
+  summarise(
+    Renta_unitaria_ambos = sum(factor_descuento * p_ambos),
+    Renta_unitaria_ultimo = sum(factor_descuento * p_ultimo),
+    Renta_unitaria_conyuge = sum(factor_descuento * p_conyuge),
+
+    VP_ambos = sum(VP_ambos),
+    VP_ultimo = sum(VP_ultimo),
+    VP_conyuge = sum(VP_conyuge),
+    .groups = "drop"
+  )
+
+# Se presentan las tres alternativas por separado
+VP_rentas_B <- data.frame(
+  Cobertura = c(
+    "Vida conjunta",
+    "Último sobreviviente",
+    "Cónyuge sobreviviente"
+  ),
+  VP_agregado = c(
+    sum(resultados_B$VP_ambos),
+    sum(resultados_B$VP_ultimo),
+    sum(resultados_B$VP_conyuge)
+  )
+)
+
+VP_rentas_B <- VP_rentas_B %>%
+  mutate(
+    VP_promedio_por_pareja = VP_agregado /
+      sum(cohortes_admisibles_B$n_inicial)
+  )
+
+knitr::kable(
+  VP_rentas_B,
+  digits = 6,
+  row.names = FALSE
+)
+```
+
+### Verificaciones de la sección B
+
+```{r}
+tolerancia_B <- 1e-10
+
+columnas_probabilidades_B <- probabilidades_B %>%
+  select(
+    supervivencia_activo,
+    supervivencia_conyuge,
+    p_ambos,
+    p_ultimo,
+    p_conyuge,
+    p_solo_activo,
+    p_ninguno
+  )
+
+# La supervivencia individual, conjunta y de último sobreviviente
+# no puede aumentar al avanzar el tiempo
+revision_supervivencias_B <- probabilidades_B %>%
+  arrange(cohorte, t) %>%
+  group_by(cohorte) %>%
+  summarise(
+    activo = all(diff(supervivencia_activo) <= tolerancia_B),
+    conyuge = all(diff(supervivencia_conyuge) <= tolerancia_B),
+    ambos = all(diff(p_ambos) <= tolerancia_B),
+    ultimo = all(diff(p_ultimo) <= tolerancia_B),
+    .groups = "drop"
+  )
+
+# Máximo VP posible si todas las parejas recibieran cinco pagos ciertos
+limite_VP_B <- sum(cohortes_admisibles_B$n_inicial) *
+  sum((1 + descuento_B)^(-(1:5)))
+
+verificaciones_B <- data.frame(
+  Verificacion = c(
+    "Población recibida conciliada con registros separados",
+    "Activos clasificados conciliados",
+    "Parejas admisibles conciliadas con las cohortes",
+    "Cinco observaciones por cohorte admisible",
+    "Probabilidades entre cero y uno",
+    "Cuatro estados disjuntos suman uno",
+    "Identidad del último sobreviviente",
+    "Ambos vivos no supera al último sobreviviente",
+    "Cónyuge sobreviviente no supera al último sobreviviente",
+    "Supervivencias no crecientes",
+    "Valores presentes dentro del límite de pagos ciertos",
+    "VP por cohorte coincide con el VP agregado"
+  ),
+
+  Cumple = c(
+    nrow(base_proyeccion) ==
+      nrow(base_B) + nrow(revision_defunciones_B),
+
+    nrow(base_B) ==
+      sum(!base_B$tiene_pareja) +
+      nrow(exclusiones_B) +
+      sum(cohortes_admisibles_B$n_inicial),
+
+    sum(base_B$admisible_B) ==
+      sum(cohortes_admisibles_B$n_inicial),
+
+    nrow(probabilidades_B) ==
+      5 * nrow(cohortes_admisibles_B),
+
+    all(
+      as.matrix(columnas_probabilidades_B) >= -tolerancia_B &
+        as.matrix(columnas_probabilidades_B) <= 1 + tolerancia_B
+    ),
+
+    all(abs(
+      probabilidades_B$p_ambos +
+        probabilidades_B$p_solo_activo +
+        probabilidades_B$p_conyuge +
+        probabilidades_B$p_ninguno - 1
+    ) <= tolerancia_B),
+
+    all(abs(
+      probabilidades_B$p_ultimo -
+        probabilidades_B$p_ambos -
+        probabilidades_B$p_solo_activo -
+        probabilidades_B$p_conyuge
+    ) <= tolerancia_B),
+
+    all(
+      probabilidades_B$p_ambos <=
+        probabilidades_B$p_ultimo + tolerancia_B
+    ),
+
+    all(
+      probabilidades_B$p_conyuge <=
+        probabilidades_B$p_ultimo + tolerancia_B
+    ),
+
+    all(as.matrix(
+      revision_supervivencias_B %>% select(-cohorte)
+    )),
+
+    all(
+      VP_rentas_B$VP_agregado >= -tolerancia_B &
+        VP_rentas_B$VP_agregado <= limite_VP_B + tolerancia_B
+    ),
+
+    all(abs(
+      c(
+        sum(VP_cohortes_B$VP_ambos),
+        sum(VP_cohortes_B$VP_ultimo),
+        sum(VP_cohortes_B$VP_conyuge)
+      ) - VP_rentas_B$VP_agregado
+    ) <= 1e-7)
+  )
+)
+
+knitr::kable(verificaciones_B, row.names = FALSE)
+
+# Se detiene la ejecución si alguna verificación falla
+stopifnot(all(verificaciones_B$Cumple))
+```
+
+### Resumen de los resultados de la sección B
+
+```{r}
+knitr::kable(
+  resumen_parejas_B,
+  row.names = FALSE
+)
+
+knitr::kable(
+  pagos_anuales_B,
+  digits = 4,
+  row.names = FALSE
+)
+
+knitr::kable(
+  VP_rentas_B,
+  digits = c(0, 2, 6),
+  col.names = c(
+    "Cobertura",
+    "VP agregado",
+    "VP promedio por pareja"
+  ),
+  row.names = FALSE
+)
+
+knitr::kable(
+  verificaciones_B,
+  row.names = FALSE
+)
+```
