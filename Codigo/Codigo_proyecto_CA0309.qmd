@@ -117,6 +117,9 @@ poblacion_inicial <- poblacion_inicial_borrador
 
 ```
 ## Sección A: Población, decrementos y multiestado
+
+### Bases de datos y supuestos
+
 ```{r}
 # Se carga la base de la mortalidad de decremento unico
 base_mortalidad_decremento_unico <- read.csv(here("Base_datos", "CA0309_Mortalidad_CR2023.csv"))
@@ -127,6 +130,10 @@ View(base_mortalidad_decremento_unico)
 # Se define la renuncia anual de decremento unico
 renuncia_decremento_unico <- 0.03
 ```
+
+
+### Calculo de las probabilidades dependientes por sexo
+
 ```{r}
 # Se procede a calcular las probabilidades dependientes de permanencia, fallecimiento y renuncia suponiendo fuerzas constantes dentro de cada año
 
@@ -180,16 +187,153 @@ View(base_decrementos_multiples_hombres)
 
 ```
 
+### Agrupacion de la base de proyeccion por edad y sexo
+
 ```{r}
 # Se agrupa por edad y sexo la base de proyeccion
-base_proyeccion_agrupada <- base_proyeccion %>% 
-  group_by(Edad, Genero) %>%
-  summarise(Poblacion = n()) %>%
-  arrange(Edad, Genero)
 
-View(base_proyeccion_agrupada)
+# Se agrupan las mujeres por edad 
+base_proyeccion_mujeres <- base_proyeccion %>% 
+  filter(Genero == "Femenino") %>%
+  group_by(Edad) %>% 
+  summarise(Activas = n()) 
+
+View(base_proyeccion_mujeres)
+
+# Se agrupan los hombres por edad 
+base_proyeccion_hombres <- base_proyeccion %>% 
+  filter(Genero == "Masculino") %>%
+  group_by(Edad) %>% 
+  summarise(Activos = n()) 
+
+View(base_proyeccion_hombres)
+
+# Se comprueba que la poblacion inicial coincida 
+print(poblacion_inicial == sum(base_proyeccion_hombres$Activos) + sum(base_proyeccion_mujeres$Activas))
+# Los calculos coinciden, por lo que se procede con la proyeccion
+
+```
+
+### Proyeccion a cinco años: mujeres 
+
+```{r}
+# Se inicializa la poblacion activa de mujeres
+activas_mujeres <- base_proyeccion_mujeres
+
+# Se crea una lista para almacenar resultados
+resultados_proyeccion_mujeres <- list()
+
+# Se ejecuta la proyeccion a cinco años
+for (i in 1:5) {
+
+  calculo_proyeccion_mujeres <- activas_mujeres %>%
+    left_join(
+      base_decrementos_multiples_mujeres,
+      by = c("Edad" = "Edad")
+    )
+
+  # Se calculan los decrementos por cada causa
+  calculo_proyeccion_mujeres <- calculo_proyeccion_mujeres %>%
+    mutate(
+      Anio = 2025 + i,
+      Fallecimientos = Activas * qx_dependiente_muerte,
+      Renuncias = Activas * qx_dependiente_renuncia,
+      Activas_finales = Activas * px_tau
+    )
+
+  # Se almacenan los resultados en la lista creada
+  resultados_proyeccion_mujeres[[i]] <- calculo_proyeccion_mujeres %>%
+    select(
+      Anio,
+      Edad,
+      Activas_iniciales = Activas,
+      Fallecimientos,
+      Renuncias,
+      Activas_finales
+    )
+
+  # Se traslada a las sobrevivientes a la siguiente edad
+  activas_mujeres <- calculo_proyeccion_mujeres %>%
+    transmute(
+      Edad = Edad + 1,
+      Activas = Activas_finales
+    ) 
+}
+
+# Se guardan los resultados de las proyecciones en variables independientes
+proyeccion_mujeres_2026 <- resultados_proyeccion_mujeres[[1]]
+proyeccion_mujeres_2027 <- resultados_proyeccion_mujeres[[2]]
+proyeccion_mujeres_2028 <- resultados_proyeccion_mujeres[[3]]
+proyeccion_mujeres_2029 <- resultados_proyeccion_mujeres[[4]]
+proyeccion_mujeres_2030 <- resultados_proyeccion_mujeres[[5]]
+
+View(proyeccion_mujeres_2026)
+View(proyeccion_mujeres_2027)
+View(proyeccion_mujeres_2028)
+View(proyeccion_mujeres_2029)
+View(proyeccion_mujeres_2030)
+
+```
 
 
+###  Proyeccion a cinco años: hombres
+
+```{r}
+# Se inicializa la poblacion activa de mujeres
+activos_hombres <- base_proyeccion_hombres
+
+# Se crea una lista para almacenar resultados
+resultados_proyeccion_hombres <- list()
+
+# Se ejecuta la proyeccion a cinco años
+for (i in 1:5) {
+
+  calculo_proyeccion_hombres <- activos_hombres %>%
+    left_join(
+      base_decrementos_multiples_hombres,
+      by = c("Edad" = "Edad")
+    )
+
+  # Se calculan los decrementos por cada causa
+  calculo_proyeccion_hombres <- calculo_proyeccion_hombres %>%
+    mutate(
+      Anio = 2025 + i,
+      Fallecimientos = Activos * qx_dependiente_muerte,
+      Renuncias = Activos * qx_dependiente_renuncia,
+      Activos_finales = Activos * px_tau
+    )
+
+  # Se almacenan los resultados en la lista creada
+  resultados_proyeccion_hombres[[i]] <- calculo_proyeccion_hombres %>%
+    select(
+      Anio,
+      Edad,
+      Activos_iniciales = Activos,
+      Fallecimientos,
+      Renuncias,
+      Activos_finales
+    )
+
+  # Se traslada a las sobrevivientes a la siguiente edad
+  activos_hombres <- calculo_proyeccion_hombres %>%
+    transmute(
+      Edad = Edad + 1,
+      Activos = Activos_finales
+    ) 
+}
+
+# Se guardan los resultados de las proyecciones en variables independientes
+proyeccion_hombres_2026 <- resultados_proyeccion_hombres[[1]]
+proyeccion_hombres_2027 <- resultados_proyeccion_hombres[[2]]
+proyeccion_hombres_2028 <- resultados_proyeccion_hombres[[3]]
+proyeccion_hombres_2029 <- resultados_proyeccion_hombres[[4]]
+proyeccion_hombres_2030 <- resultados_proyeccion_hombres[[5]]
+
+View(proyeccion_hombres_2026)
+View(proyeccion_hombres_2027)
+View(proyeccion_hombres_2028)
+View(proyeccion_hombres_2029)
+View(proyeccion_hombres_2030)
 
 ```
 
