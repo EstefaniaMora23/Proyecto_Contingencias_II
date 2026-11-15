@@ -692,7 +692,7 @@ revision_poblacion_B <- data.frame(
   )
 )
 
-knitr::kable(revision_poblacion_B, row.names = FALSE)
+View(revision_poblacion_B)
 ```
 
 ### Agrupación de parejas y exclusiones propias de B
@@ -813,10 +813,10 @@ resumen_parejas_B <- data.frame(
   )
 )
 
-knitr::kable(resumen_parejas_B, row.names = FALSE)
+View(resumen_parejas_B)
 
 if (nrow(exclusiones_B) > 0) {
-  knitr::kable(
+  View(
     exclusiones_B %>%
       select(
         id,
@@ -825,8 +825,7 @@ if (nrow(exclusiones_B) > 0) {
         edad_conyuge,
         sexo_conyuge,
         motivo_exclusion_B
-      ),
-    row.names = FALSE
+      )
   )
 }
 ```
@@ -922,11 +921,7 @@ pagos_anuales_B <- resultados_B %>%
     .groups = "drop"
   )
 
-knitr::kable(
-  pagos_anuales_B,
-  digits = 4,
-  row.names = FALSE
-)
+View(pagos_anuales_B)
 ```
 
 ### Valores presentes de las rentas unitarias
@@ -986,11 +981,7 @@ VP_rentas_B <- VP_rentas_B %>%
       sum(cohortes_admisibles_B$n_inicial)
   )
 
-knitr::kable(
-  VP_rentas_B,
-  digits = 6,
-  row.names = FALSE
-)
+View(VP_rentas_B)
 ```
 
 ### Verificaciones de la sección B
@@ -1105,7 +1096,7 @@ verificaciones_B <- data.frame(
   )
 )
 
-knitr::kable(verificaciones_B, row.names = FALSE)
+View(verificaciones_B)
 
 # Se detiene la ejecución si alguna verificación falla
 stopifnot(all(verificaciones_B$Cumple))
@@ -1238,4 +1229,3 @@ knitr::kable(
   row.names = FALSE
 )
 ```
-
