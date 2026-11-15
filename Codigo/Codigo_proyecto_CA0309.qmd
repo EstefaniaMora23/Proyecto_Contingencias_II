@@ -628,7 +628,6 @@ View(proyeccion_hombres_2029_P)
 View(proyeccion_hombres_2030_P)
 ```
 
-
 ## Sección B: Varias vidas
 
 ### Clasificación de activos y asignación de parejas hipotéticas
@@ -1142,3 +1141,101 @@ knitr::kable(
   row.names = FALSE
 )
 ```
+
+## Sección E: Equity-linked y rentabilidad estocástica
+
+### Parámetros de la cuenta individual
+
+```{r}
+# Se definen los parametros de la cuenta individual del hombre representativo
+edad_cuenta <- 45
+saldo_inicial <- 100000
+cargo_anual <- 0.02
+media_logrendimiento <- 0.04
+desviacion_logrendimiento <- 0.15
+numero_trayectorias <- 1000
+numero_anios <- 5
+
+# Se definen las dos garantias a comparar
+garantia_100 <- 100000
+garantia_110 <- 110000
+```
+
+### Simulación de las trayectorias de la cuenta
+
+```{r}
+# Se generan los choques normales
+# Cada fila es una trayectoria y cada columna es un año
+set.seed(2026)
+choques <- matrix(
+  rnorm(numero_trayectorias * numero_anios),
+  nrow = numero_trayectorias,
+  ncol = numero_anios
+)
+
+# Se calculan los logrendimientos de cada año
+logrendimientos <- media_logrendimiento + desviacion_logrendimiento * choques
+
+# Se crean las matrices para almacenar los resultados
+saldos_inicio <- matrix(0, nrow = numero_trayectorias, ncol = numero_anios)
+cargos <- matrix(0, nrow = numero_trayectorias, ncol = numero_anios)
+saldos_cierre <- matrix(0, nrow = numero_trayectorias, ncol = numero_anios)
+
+# Se proyecta la cuenta durante cinco años
+# El cargo se deduce al inicio de cada año, antes del rendimiento
+saldo_actual <- rep(saldo_inicial, numero_trayectorias)
+
+for (t in 1:numero_anios) {
+  saldos_inicio[, t] <- saldo_actual
+  cargos[, t] <- cargo_anual * saldo_actual
+  saldos_cierre[, t] <- (saldo_actual - cargos[, t]) * exp(logrendimientos[, t])
+
+  # El saldo al cierre es el saldo inicial del año siguiente
+  saldo_actual <- saldos_cierre[, t]
+}
+
+# Se guarda el saldo de la cuenta al cierre del año 5
+saldo_final <- saldos_cierre[, numero_anios]
+
+# Se comprueba que la proyeccion recursiva coincida con la forma cerrada
+saldo_final_cerrado <- saldo_inicial *
+  apply((1 - cargo_anual) * exp(logrendimientos), 1, prod)
+
+```
+
+### Comparación de las garantías con las mismas trayectorias
+
+```{r}
+# Se calcula el complemento a cargo del proveedor al cierre del año 5
+# Ambas garantias usan el mismo saldo final y los mismos cargos
+complemento_100 <- pmax(garantia_100 - saldo_final, 0)
+complemento_110 <- pmax(garantia_110 - saldo_final, 0)
+
+# Se comparan los resultados de ambas garantias
+comparacion_garantias <- data.frame(
+  Garantia = c(garantia_100, garantia_110),
+  Trayectorias_con_activacion = c(
+    sum(complemento_100 > 0),
+    sum(complemento_110 > 0)
+  ),
+  Probabilidad_activacion = c(
+    mean(complemento_100 > 0),
+    mean(complemento_110 > 0)
+  ),
+  Complemento_medio = c(
+    mean(complemento_100),
+    mean(complemento_110)
+  ),
+  Complemento_maximo = c(
+    max(complemento_100),
+    max(complemento_110)
+  )
+)
+
+knitr::kable(
+  comparacion_garantias,
+  digits = c(0, 0, 4, 2, 2),
+  row.names = FALSE
+)
+```
+
