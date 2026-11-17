@@ -21,33 +21,44 @@ format:
             - \setstretch{1.15} 
             - \usepackage{hanging}
             - \usepackage{hyperref}
+            - \usepackage{longtable}
+            - \usepackage{booktabs}
    include-before-body: Portada.tex
 ---
+
+El objetivo del presente informe radica en presentar los principales resultados obtenidos a partir tanto de las proyecciones como de las estimaciones ejecutadas en el archivo `Codigo_proyecto_CA0309.qmd`. En caso de que se requiera efectuar consultas a mayor profundidad sobre los datos extendidos, es preciso dirigirse al recurso mencionado y revisar el apartado denominado de la misma manera que la sección en la que está contenida la información a consultar. Asimismo, es importante destacar que la división de los resultados responde a las secciones establecidas en las indicaciones del proyecto: A. Población, decrementos y multiestado; B. Varias vidas; C. Flujos, reservas suministradas y profit testing; D. Escenario adverso y respaldo de las reservas; E. Equity-linked y rentabilidad estocástica y F. Interpretación conceptual de NIIF 17. 
+
+
 # A. Población, decrementos y multiestado
+
+En primer lugar, con el objetivo de construir la base de proyección del proyecto se partió de la población activa registrada, a la cual se le aplicó diversos filtros de acuerdo a las especificaciones extendidas. De esta forma, el cuadro de asegurados activos resultante fue el siguiente: 
+
+
+
 # B. Varias vidas
 
 ## Población y asignación de parejas hipotéticas
 
 Se trabajó con 104 005 activos, clasificados según su edad inicial al 31 de diciembre de 2025. Los menores de 30 años se consideraron sin pareja, mientras que a los de 30 años o más se les asignó una pareja hipotética de sexo opuesto. Esta asignación constituye un supuesto académico y no representa información familiar observada.
 
-| Clasificación | Cantidad |
-|---|---:|
-| Activos sin pareja hipotética | 6 755 |
-| Activos con pareja hipotética | 97 250 |
-| Exclusiones propias de B | 0 |
-| Parejas admisibles para la valoración | 97 250 |
+| Clasificación                         | Cantidad |
+|---------------------------------------|---------:|
+| Activos sin pareja hipotética         |    6 755 |
+| Activos con pareja hipotética         |   97 250 |
+| Exclusiones propias de B              |        0 |
+| Parejas admisibles para la valoración |   97 250 |
 
 La edad inicial del cónyuge se determinó mediante las siguientes reglas.
 
 | Edad inicial del activo | Cónyuge de un activo hombre | Cónyuge de una activa mujer |
-|---|---|---|
+|------------------------|------------------------|------------------------|
 | De 30 a 34 años | Igual edad | Igual edad |
 | De 35 a 54 años | Tres años menor | Tres años mayor |
 | De 55 años en adelante | Cinco años menor | Cinco años mayor |
 
 Durante los cinco años se mantuvieron la asignación inicial y la diferencia de edad. Por tanto, los activos inicialmente menores de 30 años no adquirieron pareja durante la proyección.
 
-Se verificó que la edad inicial del cónyuge no excediera 106 años y que existieran probabilidades de mortalidad para ambas personas durante todo el horizonte. 
+Se verificó que la edad inicial del cónyuge no excediera 106 años y que existieran probabilidades de mortalidad para ambas personas durante todo el horizonte.
 
 ## Proyección de los estatus de supervivencia
 
@@ -57,13 +68,13 @@ Se utilizó exclusivamente mortalidad biológica, sin incorporar renuncia. Los r
 
 La siguiente tabla presenta las cantidades esperadas de parejas que cumplen cada estatus al cierre del año, equivalentes al número esperado de pagos de una unidad.
 
-| Año | Ambos vivos | Al menos uno vivo | Cónyuge vivo con activo fallecido |
-|---|---:|---:|---:|
-| 2026 | 95 249,78 | 97 207,37 | 934,48 |
-| 2027 | 93 260,79 | 97 082,26 | 1 830,69 |
-| 2028 | 91 278,01 | 96 878,78 | 2 692,85 |
-| 2029 | 89 296,64 | 96 600,59 | 3 524,76 |
-| 2030 | 87 312,19 | 96 250,83 | 4 329,45 |
+| Año  | Ambos vivos | Al menos uno vivo | Cónyuge vivo con activo fallecido |
+|------|------------:|------------------:|----------------------------------:|
+| 2026 |   95 249,78 |         97 207,37 |                            934,48 |
+| 2027 |   93 260,79 |         97 082,26 |                          1 830,69 |
+| 2028 |   91 278,01 |         96 878,78 |                          2 692,85 |
+| 2029 |   89 296,64 |         96 600,59 |                          3 524,76 |
+| 2030 |   87 312,19 |         96 250,83 |                          4 329,45 |
 
 Las cantidades esperadas de parejas con ambos integrantes vivos disminuyen durante el horizonte. El estatus de al menos uno vivo presenta una reducción menor, pues únicamente deja de cumplirse cuando ambas personas han fallecido. Por su parte, el número esperado de cónyuges vivos con el activo fallecido aumenta en esta proyección. Esta última columna describe un estatus al cierre y no los fallecimientos nuevos de cada año.
 
@@ -72,10 +83,10 @@ Las cantidades esperadas de parejas con ambos integrantes vivos disminuyen duran
 Para cada estatus se valoró una renta temporal que paga una unidad monetaria al cierre de cada año en que se cumple la condición correspondiente. Se utilizó un horizonte de cinco años y una tasa anual efectiva de descuento del 4 %.
 
 | Cobertura alternativa | VP agregado | VP promedio por pareja inicial |
-|---|---:|---:|
-| Vida conjunta | 407 052,39 | 4,185629 |
-| Último sobreviviente | 431 037,26 | 4,432260 |
-| Cónyuge sobreviviente | 11 556,52 | 0,118833 |
+|-----------------------|------------:|-------------------------------:|
+| Vida conjunta         |  407 052,39 |                       4,185629 |
+| Último sobreviviente  |  431 037,26 |                       4,432260 |
+| Cónyuge sobreviviente |   11 556,52 |                       0,118833 |
 
 La renta de último sobreviviente presenta el mayor valor presente porque genera pagos mientras cualquiera de las dos personas permanezca viva, incluidos los períodos en que ambas viven. La renta de vida conjunta únicamente paga mientras ambos integrantes sobreviven y deja de generar pagos después del primer fallecimiento.
 
@@ -90,7 +101,9 @@ Los doce controles programados resultaron satisfactorios. Se comprobó la concil
 Los resultados dependen de la asignación hipotética de parejas, las diferencias de edad establecidas y la independencia entre vidas. Esta última hipótesis no incorpora riesgos compartidos entre integrantes de una pareja, por lo que la valoración debe interpretarse dentro del alcance académico del ejercicio.
 
 # C. Flujos, reservas suministradas y profit testing
+
 # D. Escenario adverso y respaldo de las reservas
+
 # E. Equity-linked y rentabilidad estocástica
 
 # F. Interpretación conceptual de NIIF 17
@@ -122,5 +135,3 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 # Anexos
 
 ## Anexo B
-
-
