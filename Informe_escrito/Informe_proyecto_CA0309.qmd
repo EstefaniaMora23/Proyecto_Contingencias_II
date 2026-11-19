@@ -23,6 +23,7 @@ format:
             - \usepackage{hyperref}
             - \usepackage{longtable}
             - \usepackage{booktabs}
+            - \usepackage{array}
    include-before-body: Portada.tex
 ---
 
@@ -33,9 +34,53 @@ El objetivo del presente informe radica en presentar los principales resultados 
 
 # A. Población, decrementos y multiestado
 
-En primer lugar, con el objetivo de construir la base de proyección del proyecto se partió de la población activa registrada, a la cual se le aplicó diversos filtros de acuerdo a las especificaciones extendidas. De esta forma, el cuadro de asegurados activos resultante fue el siguiente: 
+En primer lugar, con el objetivo de construir la base de proyección del proyecto se partió de la población activa registrada, a la cual se le aplicó diversos filtros de acuerdo a las especificaciones extendidas. De esta forma, el resumen estadístico de la población activa resultante fue el siguiente: 
 
+\begin{table}[H]
+\centering
+\caption{Resumen estadístico de la población por sexo}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Dato} & \textbf{Sexo femenino} & \textbf{Sexo masculino} \\ \hline
+Población total & 52652 & 51353 \\ \hline
+Edad promedio & 56,82278 & 56,78481 \\ \hline
+Edad mediana & 57 & 57 \\ \hline
+Edad mímina & 4 & 1 \\ \hline
+Edad máxima & 96 & 96 \\ \hline
+Desviación estándar de la edad & 23,30553 & 23,39498 \\ \hline
+Edad con la mayor cantidad de registros & 40 & 40\\ \hline
+\end{tabular}
+\end{table}
 
+Es preciso mencionar que la tabla anterior refleja la exclusión acumulativa de un total de 136 registros sin una fecha de nacimiento válida y un único registro sin un sexo válido, las demás condiciones de exclusión también fueron verificadas, no obstante, no se encontraron registros por excluir. Lo anterior puede responder a dos situaciones: la ausencia de entradas que incumplan las condiciones establecidas o la exclusión previa de dichas entradas tras evaluar otras condiciones. Por otro lado, la población inicial utilizada tiene un valor de $N_{0} = 104005$, número que coincide con la suma de la población total registrada por sexo. Seguidamente, se presenta la distribución anual de la población por causa, obtenida tras efectuar la proyección por un plazo de cinco años. 
+
+\begin{longtable}{|c|c|c|c|c|c|}
+\caption{Distribución anual de la población por causa} \\
+
+\hline
+\textbf{Año} & \textbf{Sexo} & \textbf{Población inicial} & \textbf{Fallecimientos anuales} & \textbf{Renuncias anuales} & \textbf{Población final} \\ 
+\hline
+\endfirsthead
+
+\hline
+\textbf{Año} & \textbf{Sexo} & \textbf{Población inicial} & \textbf{Fallecimientos anuales} & \textbf{Renuncias anuales} & \textbf{Población final} \\ 
+\hline
+\endhead
+
+2026 & Femenino & 52652,00 & 357,3064 & 1574,107 & 50720,59 \\ \hline
+2026 & Masculino & 51353,00 & 613,2966 & 1531,224 & 49208,48 \\ \hline
+2027 & Femenino & 50720,59 & 366,2522 & 1516,025 & 48838,31 \\ \hline
+2027 & Masculino & 49208,48 & 617,5724 & 1466,820 & 47124,09 \\ \hline
+2028 & Femenino & 48838,31 & 374,6204 & 1459,427 & 47004,26 \\ \hline
+2028 & Masculino & 47124,09 & 620,8349 & 1404,235 & 45099,02 \\ \hline
+2029 & Femenino & 47004,26 & 382,3941 & 1404,284 & 45217,58 \\ \hline
+2029 & Masculino & 45099,02 & 623,2133 & 1343,443 & 43132,36 \\ \hline
+2030 & Femenino & 45217,58 & 389,5414 & 1350,573 & 43477,47 \\ \hline
+2030 & Masculino & 43132,36 & 624,6102 & 1284,419 & 41223,33 \\ \hline
+
+\end{longtable}
+
+En el archivo `Codigo_proyecto_CA0309.qmd` se verificó que la población inicial de cada año coincidiera con la suma de los fallecimientos anuales, las renuncias anuales y la población final, admitiendo una pequeña tolerancia debido a la limitación decimal de la computadora. Asimismo, es posible notar en la tabla que la población inicial de todos los años exceptuando al 2026, coincide con la población final del año anterior, de manera que se guarda la coherencia en los cálculos. En lo que concierne a las matrices de trasición, se verificó en el mismo archivo que las probabilidades en sus filas sumaran una unidad, admitiendo una pequeña tolerancia. 
 
 # B. Varias vidas
 
@@ -137,6 +182,6 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 | Integrante | Actividad realizada | Evidencia o archivo verificable |
 |:---|:---|:---|
 | Estudiante A: Estefanía | Programación del código de la sección B de varias vidas y redacción de las secciones B y F del informe. | `Codigo_proyecto_CA0309`, sección B; `Informe_proyecto_CA0309`, secciones B y F. |
-| Estudiante B: Alexandra | | |
+| Estudiante B: Alexandra | Programación del código de la sección A: población, decrementos y multiestado. Redacción de la sección A en el informe.| `Codigo_proyecto_CA0309`, sección A; `Informe_proyecto_CA0309`, sección A.|
 | Estudiante C: Daniela | | |
 | Estudiante D: César | | |

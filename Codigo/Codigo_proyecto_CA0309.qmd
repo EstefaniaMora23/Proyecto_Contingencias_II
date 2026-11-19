@@ -114,7 +114,7 @@ print(poblacion_inicial_borrador == poblacion_inicial_comprobacion)
 # Se definen finalmente, las dos variables a emplear en las proyecciones 
 base_proyeccion <- base_proyeccion_depurada
 poblacion_inicial <- poblacion_inicial_borrador
-
+poblacion_inicial
 ```
 
 ## Sección A: Población, decrementos y multiestado
@@ -626,6 +626,126 @@ View(proyeccion_hombres_2027_P)
 View(proyeccion_hombres_2028_P)
 View(proyeccion_hombres_2029_P)
 View(proyeccion_hombres_2030_P)
+```
+
+### Construcción del resumen estadístico de la base de proyección
+
+```{r}
+# A continuacion se contruye una tabla con el resumen estadistico de la base de proyeccion conservando la diferenciacion por sexo. 
+
+# Resumen estadistico de las mujeres
+resumen_mujeres <- base_proyeccion_mujeres %>%
+  summarise(
+    Total_activos = sum(Activas),
+    Edad_promedio = mean(Edad, na.rm = TRUE),
+    Edad_mediana = median(Edad, na.rm = TRUE),
+    Edad_minima = min(Edad, na.rm = TRUE),
+    Edad_maxima = max(Edad, na.rm = TRUE),
+    Desviacion_estandar = sd(Edad, na.rm = TRUE),
+    Edad_mayor_concentracion = Edad[which.max(Activas)]
+  )%>%
+  mutate(Genero = "Femenino")
+
+# Resumen estadistico de los hombres
+resumen_hombres <- base_proyeccion_hombres %>%
+  summarise(
+    Total_activos = sum(Activos),
+    Edad_promedio = mean(Edad, na.rm = TRUE),
+    Edad_mediana = median(Edad, na.rm = TRUE),
+    Edad_minima = min(Edad, na.rm = TRUE),
+    Edad_maxima = max(Edad, na.rm = TRUE),
+    Desviacion_estandar = sd(Edad, na.rm = TRUE),
+    Edad_mayor_concentracion = Edad[which.max(Activos)]
+  ) %>%
+  mutate(Genero = "Masculino")
+
+# Se unen ambos resumenes 
+resumen_general_activos <- bind_rows(
+  resumen_mujeres,
+  resumen_hombres
+) %>%
+  select(Genero, everything())
+
+View(resumen_general_activos)
+
+```
+
+### Construcción de la distribución anual de la población por causa 
+
+```{r}
+distribucion_anual_mujeres <- bind_rows(
+  proyeccion_mujeres_2026,
+  proyeccion_mujeres_2027,
+  proyeccion_mujeres_2028,
+  proyeccion_mujeres_2029,
+  proyeccion_mujeres_2030
+) %>%
+  group_by(Anio) %>%
+  summarise(
+    Poblacion_inicial = sum(Activas_iniciales, na.rm = TRUE),
+    Fallecimientos = sum(Fallecimientos_anuales, na.rm = TRUE),
+    Renuncias = sum(Renuncias_anuales, na.rm = TRUE),
+    Poblacion_final = sum(Activas_finales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(Genero = "Femenino") %>%
+  select(Anio, Genero, everything())
+
+distribucion_anual_hombres <- bind_rows(
+  proyeccion_hombres_2026,
+  proyeccion_hombres_2027,
+  proyeccion_hombres_2028,
+  proyeccion_hombres_2029,
+  proyeccion_hombres_2030
+) %>%
+  group_by(Anio) %>%
+  summarise(
+    Poblacion_inicial = sum(Activos_iniciales, na.rm = TRUE),
+    Fallecimientos = sum(Fallecimientos_anuales, na.rm = TRUE),
+    Renuncias = sum(Renuncias_anuales, na.rm = TRUE),
+    Poblacion_final = sum(Activos_finales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(Genero = "Masculino") %>%
+  select(Anio, Genero, everything())
+
+distribucion_anual_general <- bind_rows(
+  distribucion_anual_mujeres,
+  distribucion_anual_hombres
+) %>%
+  arrange(Anio, Genero)
+
+View(distribucion_anual_general)
+```
+
+```{r}
+# Ahora, se procede a comprobar para cada año que la poblacion inicial coincide con la suma de los fallecimientos anuales, las renuncias anuales y la poblacion final. Se mantiene la diferenciacion por sexo. Ademas, las comprobaciones se efectuan con una pequeña tolerancia debido a la limitacion decimal de la computadora. 
+
+# Comprobacion mujeres 
+comprobacion_mujeres <- distribucion_anual_mujeres %>%
+  mutate(
+    Comprobacion = Poblacion_inicial -
+      Fallecimientos -
+      Renuncias -
+      Poblacion_final,
+    Coincide = abs(Comprobacion) < 0.01
+  )
+
+View(comprobacion_mujeres)
+
+
+# Comprobacion hombres 
+comprobacion_hombres <- distribucion_anual_hombres %>%
+  mutate(
+    Comprobacion = Poblacion_inicial -
+      Fallecimientos -
+      Renuncias -
+      Poblacion_final,
+    Coincide = abs(Comprobacion) < 0.01
+  )
+
+View(comprobacion_hombres)
+
 ```
 
 ## Sección B: Varias vidas
