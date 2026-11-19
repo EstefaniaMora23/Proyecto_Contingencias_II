@@ -26,6 +26,8 @@ format:
    include-before-body: Portada.tex
 ---
 
+\newpage
+
 El objetivo del presente informe radica en presentar los principales resultados obtenidos a partir tanto de las proyecciones como de las estimaciones ejecutadas en el archivo `Codigo_proyecto_CA0309.qmd`. En caso de que se requiera efectuar consultas a mayor profundidad sobre los datos extendidos, es preciso dirigirse al recurso mencionado y revisar el apartado denominado de la misma manera que la sección en la que está contenida la información a consultar. Asimismo, es importante destacar que la división de los resultados responde a las secciones establecidas en las indicaciones del proyecto: A. Población, decrementos y multiestado; B. Varias vidas; C. Flujos, reservas suministradas y profit testing; D. Escenario adverso y respaldo de las reservas; E. Equity-linked y rentabilidad estocástica y F. Interpretación conceptual de NIIF 17. 
 
 
@@ -39,7 +41,7 @@ En primer lugar, con el objetivo de construir la base de proyección del proyect
 
 ## Población y asignación de parejas hipotéticas
 
-Se trabajó con 104 005 activos, clasificados según su edad inicial al 31 de diciembre de 2025. Los menores de 30 años se consideraron sin pareja, mientras que a los de 30 años o más se les asignó una pareja hipotética de sexo opuesto. Esta asignación constituye un supuesto académico y no representa información familiar observada.
+Se trabajó con 104 005 activos, clasificados según su edad inicial al 31 de diciembre de 2025. Los menores de 30 años se consideraron sin pareja, mientras que a los de 30 años o más se les asignó una pareja hipotética de sexo opuesto. Las cantidades por cada grupo se muestran a continuación:
 
 | Clasificación                         | Cantidad |
 |---------------------------------------|---------:|
@@ -48,23 +50,15 @@ Se trabajó con 104 005 activos, clasificados según su edad inicial al 31 de di
 | Exclusiones propias de B              |        0 |
 | Parejas admisibles para la valoración |   97 250 |
 
-La edad inicial del cónyuge se determinó mediante las siguientes reglas.
+Por otro lado, la edad inicial del cónyuge se asignó según la edad y el sexo del activo. Entre los 30 y 34 años, ambos tenían la misma edad. Entre los 35 y 54 años, se supuso que el cónyuge era tres años menor si el activo era hombre y tres años mayor si era mujer. A partir de los 55 años, la diferencia fue de cinco años en el mismo sentido.
 
-| Edad inicial del activo | Cónyuge de un activo hombre | Cónyuge de una activa mujer |
-|------------------------|------------------------|------------------------|
-| De 30 a 34 años | Igual edad | Igual edad |
-| De 35 a 54 años | Tres años menor | Tres años mayor |
-| De 55 años en adelante | Cinco años menor | Cinco años mayor |
-
-Durante los cinco años se mantuvieron la asignación inicial y la diferencia de edad. Por tanto, los activos inicialmente menores de 30 años no adquirieron pareja durante la proyección.
-
-Se verificó que la edad inicial del cónyuge no excediera 106 años y que existieran probabilidades de mortalidad para ambas personas durante todo el horizonte.
+La pareja asignada y la diferencia de edad se mantuvieron durante los cinco años. Por ello, quienes tenían menos de 30 años al inicio permanecieron sin pareja en esta proyección. Se verificó que la edad inicial del cónyuge no excediera 106 años y que existieran probabilidades de mortalidad para ambas personas durante todo el horizonte.
 
 ## Proyección de los estatus de supervivencia
 
 Se supuso independencia entre los tiempos futuros de vida del activo y su cónyuge. La supervivencia de cada persona se calculó acumulando las probabilidades anuales correspondientes a su sexo y edad, actualizando esta última cada año.
 
-Se utilizó exclusivamente mortalidad biológica, sin incorporar renuncia. Los resultados se agregaron utilizando las cantidades iniciales de parejas de cada cohorte, sin aplicar nuevamente la proyección demográfica de A.
+Se utilizó exclusivamente mortalidad (biológica), sin incorporar renuncia. Los resultados se agregaron utilizando las cantidades iniciales de parejas de cada cohorte, sin aplicar nuevamente la proyección demográfica de A.
 
 La siguiente tabla presenta las cantidades esperadas de parejas que cumplen cada estatus al cierre del año, equivalentes al número esperado de pagos de una unidad.
 
@@ -76,7 +70,11 @@ La siguiente tabla presenta las cantidades esperadas de parejas que cumplen cada
 | 2029 |   89 296,64 |         96 600,59 |                          3 524,76 |
 | 2030 |   87 312,19 |         96 250,83 |                          4 329,45 |
 
-Las cantidades esperadas de parejas con ambos integrantes vivos disminuyen durante el horizonte. El estatus de al menos uno vivo presenta una reducción menor, pues únicamente deja de cumplirse cuando ambas personas han fallecido. Por su parte, el número esperado de cónyuges vivos con el activo fallecido aumenta en esta proyección. Esta última columna describe un estatus al cierre y no los fallecimientos nuevos de cada año.
+Las cantidades esperadas de parejas con ambos integrantes vivos disminuyen de 95 249,78 al cierre de 2026 a 87 312,19 al cierre de 2030. Esto ocurre porque, conforme transcurren los años, aumenta la posibilidad de que al menos una de las dos personas haya fallecido.
+
+La cantidad correspondiente al último sobreviviente también disminuye, pero más lentamente. Para cumplir este estatus basta con que una de las dos personas siga viva; por eso incluye tanto a las parejas en que ambos viven como a aquellas en que solo vive uno.
+
+En cambio, la cantidad esperada de cónyuges vivos con el activo fallecido aumenta de 934,48 a 4 329,45 durante estos cinco años. Esta columna muestra cuántas parejas se espera que estén en esa situación al cierre de cada año. No representa fallecimientos nuevos ocurridos durante ese año. Las cantidades pueden ser fraccionarias porque son valores esperados, calculados al agregar las probabilidades de todas las parejas admisibles.
 
 ## Valores presentes de las rentas unitarias
 
@@ -88,17 +86,17 @@ Para cada estatus se valoró una renta temporal que paga una unidad monetaria al
 | Último sobreviviente  |  431 037,26 |                       4,432260 |
 | Cónyuge sobreviviente |   11 556,52 |                       0,118833 |
 
-La renta de último sobreviviente presenta el mayor valor presente porque genera pagos mientras cualquiera de las dos personas permanezca viva, incluidos los períodos en que ambas viven. La renta de vida conjunta únicamente paga mientras ambos integrantes sobreviven y deja de generar pagos después del primer fallecimiento.
+La renta de último sobreviviente tiene el mayor VP agregado, 431 037,26, porque paga al cierre de cada año en que al menos una persona siga viva, incluso cuando ambas sobreviven. La renta de vida conjunta alcanza 407 052,39 y solo paga mientras ambos estén vivos; sus pagos cesan tras el primer fallecimiento.
 
-La renta al cónyuge sobreviviente requiere que el activo haya fallecido y que su pareja permanezca viva en la fecha de pago. Puede generar pagos en varios cierres posteriores al fallecimiento, dentro del plazo de cinco años. En esta población presenta el menor valor presente.
+La renta al cónyuge sobreviviente tiene el menor VP, 11 556,52. Para recibir un pago, el activo debe haber fallecido y el cónyuge debe seguir vivo al cierre de ese año. Esta situación puede dar lugar a varios pagos durante los cinco años. Los VP promedio por pareja inicial son, respectivamente, 4,432260, 4,185629 y 0,118833.
 
-Estas tres rentas son coberturas alternativas y sus valores no se suman entre sí ni a los flujos del seguro colectivo. En particular, el seguro de C paga una suma por el fallecimiento cubierto del activo, mientras que la renta al cónyuge exige además la supervivencia de la pareja en cada fecha de pago.
+Son tres coberturas alternativas y sus VP no se suman entre sí ni a los flujos del seguro colectivo de C. Este último paga por el fallecimiento cubierto del activo; la renta al cónyuge depende además de su supervivencia en cada fecha de pago.
 
 ## Verificaciones y limitaciones
 
-Los doce controles programados resultaron satisfactorios. Se comprobó la conciliación de población y cohortes, la existencia de cinco observaciones por cohorte admisible, las probabilidades entre cero y uno, la suma unitaria de los cuatro estados disjuntos y la identidad del último sobreviviente. También se verificaron la evolución no creciente de las supervivencias, los límites de los valores presentes y la coincidencia entre su agregación por cohortes y el total.
+Se verificó que las parejas admisibles coinciden con el total de sus cohortes, que cada cohorte tiene cinco observaciones y que las probabilidades de los cuatro estados disjuntos suman uno, con una tolerancia mínima por redondeo.
 
-Los resultados dependen de la asignación hipotética de parejas, las diferencias de edad establecidas y la independencia entre vidas. Esta última hipótesis no incorpora riesgos compartidos entre integrantes de una pareja, por lo que la valoración debe interpretarse dentro del alcance académico del ejercicio.
+Los resultados se basan en parejas hipotéticas, diferencias de edad fijadas por el enunciado e independencia entre vidas. Por ello, no describen cónyuges observados ni incorporan riesgos compartidos, y deben interpretarse dentro del horizonte de cinco años.
 
 # C. Flujos, reservas suministradas y profit testing
 
@@ -132,6 +130,13 @@ La CSM representa ganancia futura pendiente de reconocer. La reserva suministrad
 
 En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el efectivo, sin constituir utilidad ni CSM. Asimismo, una reserva suministrada de cero al finalizar el año 5 no determina por sí sola el saldo de efectivo.
 
-# Anexos
+\newpage
 
-## Anexo B
+# Contibuciones individuales
+
+| Integrante | Actividad realizada | Evidencia o archivo verificable |
+|:---|:---|:---|
+| Estudiante A: Estefanía | Programación del código de la sección B de varias vidas y redacción de las secciones B y F del informe. | `Codigo_proyecto_CA0309`, sección B; `Informe_proyecto_CA0309`, secciones B y F. |
+| Estudiante B: Alexandra | | |
+| Estudiante C: Daniela | | |
+| Estudiante D: César | | |
