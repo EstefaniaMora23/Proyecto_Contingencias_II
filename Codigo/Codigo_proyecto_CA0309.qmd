@@ -6,7 +6,7 @@ editor: visual
 
 # Construcción de la base de la proyección
 
-```{r, warning= False}
+```{r, warning= FALSE}
 library(readxl)
 library(here)
 library(dplyr)
@@ -997,7 +997,7 @@ View(verificaciones_B)
 ### Parámetros de la cuenta individual
 
 ```{r}
-# Se definen los parametros de la cuenta individual del hombre representativo
+# Se definen los parametros de la cuenta individual
 edad_cuenta <- 45
 saldo_inicial <- 100000
 cargo_anual <- 0.02
@@ -1005,8 +1005,9 @@ media_logrendimiento <- 0.04
 desviacion_logrendimiento <- 0.15
 numero_trayectorias <- 1000
 numero_anios <- 5
+descuento_E <- 0.04
 
-# Se definen las dos garantias a comparar
+# Se definen las garantias a comparar
 garantia_100 <- 100000
 garantia_110 <- 110000
 ```
@@ -1014,8 +1015,7 @@ garantia_110 <- 110000
 ### Simulación de las trayectorias de la cuenta
 
 ```{r}
-# Se generan los choques normales
-# Cada fila es una trayectoria y cada columna es un año
+# Se generan los choques normales independientes entre años y trayectorias
 set.seed(2026)
 choques <- matrix(
   rnorm(numero_trayectorias * numero_anios),
@@ -1044,47 +1044,59 @@ for (t in 1:numero_anios) {
   saldo_actual <- saldos_cierre[, t]
 }
 
-# Se guarda el saldo de la cuenta al cierre del año 5
 saldo_final <- saldos_cierre[, numero_anios]
 
-# Se comprueba que la proyeccion recursiva coincida con la forma cerrada
-saldo_final_cerrado <- saldo_inicial *
-  apply((1 - cargo_anual) * exp(logrendimientos), 1, prod)
-
-```
-
-### Comparación de las garantías con las mismas trayectorias
-
-```{r}
-# Se calcula el complemento a cargo del proveedor al cierre del año 5
-# Ambas garantias usan el mismo saldo final y los mismos cargos
+# Complemento a cargo del proveedor al cierre del año 5
 complemento_100 <- pmax(garantia_100 - saldo_final, 0)
 complemento_110 <- pmax(garantia_110 - saldo_final, 0)
-
-# Se comparan los resultados de ambas garantias
-comparacion_garantias <- data.frame(
-  Garantia = c(garantia_100, garantia_110),
-  Trayectorias_con_activacion = c(
-    sum(complemento_100 > 0),
-    sum(complemento_110 > 0)
-  ),
-  Probabilidad_activacion = c(
-    mean(complemento_100 > 0),
-    mean(complemento_110 > 0)
-  ),
-  Complemento_medio = c(
-    mean(complemento_100),
-    mean(complemento_110)
-  ),
-  Complemento_maximo = c(
-    max(complemento_100),
-    max(complemento_110)
-  )
-)
-
-knitr::kable(
-  comparacion_garantias,
-  digits = c(0, 0, 4, 2, 2),
-  row.names = FALSE
-)
 ```
+
+### Permanencia del hombre representativo
+
+```{r}
+# Permanencia anual con mortalidad y renuncia actuando simultaneamente
+edades_cuenta <- edad_cuenta + 0:(numero_anios - 1)
+qx_hombre <- base_mortalidad_decremento_unico$qx_masculino[
+  match(edades_cuenta, base_mortalidad_decremento_unico$edad)
+]
+px_tau <- (1 - qx_hombre) * (1 - renuncia_decremento_unico)
+
+# Permanencia al inicio de cada año y al vencimiento
+perm_inicio <- c(1, cumprod(px_tau))[1:numero_anios]
+perm_vencimiento <- prod(px_tau)
+```
+
+### Valor presente, NPV, frecuencia de pérdida y CTE95
+
+```{r}
+# Cargos ponderados por permanencia al inicio del año y descontados desde ese momento
+VP_cargos <- as.vector(cargos %*% (perm_inicio * (1 + descuento_E)^(-(0:(numero_anios - 1)))))
+
+# Complemento ponderado por permanencia al vencimiento y descontado cinco años
+VP_complemento_100 <- complemento_100 * perm_vencimiento * (1 + descuento_E)^(-numero_anios)
+VP_complemento_110 <- complemento_110 * perm_vencimiento * (1 + descuento_E)^(-numero_anios)
+
+# NPV del proveedor
+NPV_100 <- VP_cargos - VP_complemento_100
+NPV_110 <- VP_cargos - VP_complemento_110
+
+# CTE95: media de las 50 mayores perdidas (perdida = -NPV)
+cte95 <- function(npv) mean(sort(-npv, decreasing = TRUE)[1:50])
+
+comparacion_proveedor <- data.frame(
+  Garantia = c(garantia_100, garantia_110),
+  Probabilidad_activacion = c(mean(complemento_100 > 0), mean(complemento_110 > 0)),
+  VP_complemento_medio = c(mean(VP_complemento_100), mean(VP_complemento_110)),
+  NPV_medio = c(mean(NPV_100), mean(NPV_110)),
+  Frecuencia_perdida = c(mean(NPV_100 < 0), mean(NPV_110 < 0)),
+  CTE95 = c(cte95(NPV_100), cte95(NPV_110))
+)
+
+knitr::kable(comparacion_proveedor, row.names = FALSE)
+```
+
+
+
+
+
+
