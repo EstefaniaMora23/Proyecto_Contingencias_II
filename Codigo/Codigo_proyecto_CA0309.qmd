@@ -1398,7 +1398,7 @@ VP_complemento_110 <- complemento_110 *
 NPV_100 <- VP_cargos - VP_complemento_100
 NPV_110 <- VP_cargos - VP_complemento_110
 
-# CTE95: media de las 50 mayores perdidas (perdida = -NPV)
+# CTE95: media de las 50 mayores perdidas
 cte95 <- function(npv) mean(sort(-npv, decreasing = TRUE)[1:50])
 
 comparacion_proveedor <- data.frame(
@@ -1416,8 +1416,103 @@ comparacion_proveedor <- data.frame(
 knitr::kable(comparacion_proveedor, row.names = FALSE)
 ```
 
+### Histograma comparativo del NPV
 
+```{r}
+# Se definen los limites y los cortes comunes para que las escalas sean comparables
+limite_inferior <- floor(min(NPV_100, NPV_110))
+limite_superior <- ceiling(max(NPV_100, NPV_110))
+cortes <- seq(limite_inferior, limite_superior, length.out = 31)
 
+# Se calcula la frecuencia maxima para usar el mismo eje vertical en ambos graficos
+frecuencia_maxima <- max(
+  hist(NPV_100, breaks = cortes, plot = FALSE)$counts,
+  hist(NPV_110, breaks = cortes, plot = FALSE)$counts
+)
 
+par(mfrow = c(1, 2))
+hist(
+  NPV_100,
+  breaks = cortes,
+  xlim = c(limite_inferior, limite_superior),
+  ylim = c(0, frecuencia_maxima),
+  main = "Garantía de 100 000",
+  xlab = "NPV del proveedor (u.m.)",
+  ylab = "Número de trayectorias"
+)
+abline(v = 0, lty = 2)
+hist(
+  NPV_110,
+  breaks = cortes,
+  xlim = c(limite_inferior, limite_superior),
+  ylim = c(0, frecuencia_maxima),
+  main = "Garantía de 110 000",
+  xlab = "NPV del proveedor (u.m.)",
+  ylab = "Número de trayectorias"
+)
+abline(v = 0, lty = 2)
+par(mfrow = c(1, 1))
+```
 
+### Detalle de una trayectoria
 
+```{r}
+# Se escoge la primera trayectoria en la que se activa la garantia de 100 000
+trayectoria <- which(complemento_100 > 0)[1]
+
+# Si ninguna trayectoria activa la garantia se usa la primera
+if (is.na(trayectoria)) {
+  trayectoria <- 1
+}
+print(trayectoria)
+
+# Se construye la tabla de la cuenta 
+detalle_cuenta <- data.frame(
+  Anio = 1:numero_anios,
+  Saldo_inicio = saldos_inicio[trayectoria, ],
+  Cargo = cargos[trayectoria, ],
+  Logrendimiento = logrendimientos[trayectoria, ],
+  Saldo_cierre = saldos_cierre[trayectoria, ],
+  Permanencia_inicio = perm_inicio,
+  Factor_descuento = (1 + descuento_E)^(-(0:(numero_anios - 1)))
+)
+
+# Se pondera cada cargo por la permanencia y se descuenta desde el inicio del año
+detalle_cuenta$VP_cargo <- detalle_cuenta$Cargo *
+  detalle_cuenta$Permanencia_inicio *
+  detalle_cuenta$Factor_descuento
+
+View(detalle_cuenta)
+
+# Se construye la tabla del complemento y del NPV para cada garantia
+detalle_garantias <- data.frame(
+  Garantia = c(garantia_100, garantia_110),
+  Saldo_final = saldo_final[trayectoria],
+  Complemento = c(complemento_100[trayectoria], complemento_110[trayectoria]),
+  VP_complemento = c(
+    VP_complemento_100[trayectoria],
+    VP_complemento_110[trayectoria]
+  ),
+  VP_cargos = VP_cargos[trayectoria],
+  NPV = c(NPV_100[trayectoria], NPV_110[trayectoria])
+)
+
+View(detalle_garantias)
+```
+
+### Verificaciones de la sección E
+
+```{r}
+verificaciones_E <- data.frame(
+  Verificacion = c(
+    "Garantia mayor no disminuye el complemento en ninguna trayectoria",
+    "Garantia mayor no aumenta el NPV en ninguna trayectoria"
+  ),
+  Cumple = c(
+    all(complemento_110 >= complemento_100),
+    all(NPV_110 <= NPV_100 + 1e-10)
+  )
+)
+
+View(verificaciones_E)
+```
