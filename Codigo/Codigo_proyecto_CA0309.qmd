@@ -1288,7 +1288,15 @@ testing_base <- profit_testing(
 )
 ```
 
-## Sección D: 
+## Sección D:  Escenario adverso y respaldo de las reservas
+
+```{r}
+testing_adverso <- profit_testing(
+  parametros_adverso,
+  datos_poblacion,
+  caso = "Adverso"
+)
+```
 
 ## Sección E: Equity-linked y rentabilidad estocástica
 
@@ -1501,4 +1509,14 @@ verificaciones_E <- data.frame(
 )
 
 View(verificaciones_E)
+```
+
+## Extra Grupo 3
+
+```{r}
+testing_b_mayor <- profit_testing(
+  parametros_b_mayor,
+  datos_poblacion,
+  caso = "Beneficio mayor"
+)
 ```
