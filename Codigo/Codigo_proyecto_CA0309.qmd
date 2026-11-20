@@ -1196,6 +1196,22 @@ datos_poblacion <- distribucion_anual_general %>%
 
 N0 <- datos_poblacion$activos_inicio[1]
 ```
+### Funciones auxiliares para tablas
+
+```{r}
+library(knitr)
+
+# Convierte una tabla en Markdown
+tabla_md <- function(tabla, digits = 4) {
+  tabla %>%
+    mutate(across(any_of(c("Anio", "periodo")), as.character)) %>%
+    kable(
+      format = "markdown",
+      digits = digits,
+      format.args = list(nsmall = digits, big.mark = " ", decimal.mark = ",")
+    )
+}
+```
 
 ### Profit testing
 
@@ -1286,6 +1302,53 @@ testing_base <- profit_testing(
   datos_poblacion,
   caso = "Base"
 )
+
+# Tabla anual
+tabla_base <- testing_base$flujos %>%
+  transmute(
+    Anio,
+    `Activos al inicio` = activos_inicio,
+    `Fallecimientos esperados` = fallecimientos_esp,
+    `Primas (M)` = primas / 1e6,
+    `Gastos y comisiones (M)` = (gastos + comisiones) / 1e6,
+    `Beneficios (M)` = beneficios / 1e6,
+    `Reserva final (M)` = reserva_fin_total / 1e6,
+    `Resultado (M)` = resultado_cartera / 1e6
+  )
+
+# Recursos y aportes
+tabla_fondos_base <- testing_base$fondos %>%
+  mutate(across(fondo_inicio_anio:fondo_despues, ~ .x / 1e6))
+
+# Desglose del año 1
+a1 <- testing_base$flujos[1, ]
+desglose_anio1 <- tibble(
+  concepto = c(
+    "Reserva inicial total",
+    "Primas netas de gasto y comisión",
+    "Fondos acumulados al cierre, con rendimiento",
+    "Beneficios por fallecimiento",
+    "Reserva final total",
+    "Resultado de cartera"
+  ),
+  monto = c(
+    a1$reserva_ini_total,
+    a1$primas - a1$gastos - a1$comisiones,
+    a1$fondos_acumulados,
+    a1$beneficios,
+    a1$reserva_fin_total,
+    a1$resultado_cartera
+  )
+)
+
+# Para hacer comparaciones
+
+comparacion_escenarios <- function(tabla) {
+  dif <- tabla %>%
+    summarise(across(where(is.numeric), ~ .x[2] - .x[1])) %>%
+    mutate(caso = "Diferencia")
+  bind_rows(tabla, dif) %>% select(caso, everything())
+}
 ```
 
 ## Sección D:  Escenario adverso y respaldo de las reservas
@@ -1296,6 +1359,20 @@ testing_adverso <- profit_testing(
   datos_poblacion,
   caso = "Adverso"
 )
+
+cuadro_adverso <- bind_rows(testing_base$resumen, testing_adverso$resumen) %>%
+  select(caso, npv, margen, saldo_minimo, total_aportes, respaldo_anio1) %>%
+  comparacion_escenarios()
+
+cuadro_advsero_md <- cuadro_adverso %>%
+  transmute(
+    Caso = caso,
+    `NPV (M)` = npv / 1e6,
+    `Margen` = margen,
+    `Saldo mínimo (M)` = saldo_minimo / 1e6,
+    `Total aportes (M)` = total_aportes / 1e6,
+    `Respaldo año 1 (M)` = respaldo_anio1 / 1e6
+  )
 ```
 
 ## Sección E: Equity-linked y rentabilidad estocástica
@@ -1519,4 +1596,18 @@ testing_b_mayor <- profit_testing(
   datos_poblacion,
   caso = "Beneficio mayor"
 )
+
+cuadro_extra <- bind_rows(testing_base$resumen, testing_b_mayor$resumen) %>%
+  comparacion_escenarios()
+
+cuadro_extra_md <- cuadro_extra %>%
+  transmute(
+    Caso = caso,
+    `VP beneficios (M)` = vp_beneficios / 1e6,
+    `NPV (M)` = npv / 1e6,
+    `Margen` = margen,
+    `Saldo mínimo (M)` = saldo_minimo / 1e6,
+    `Total aportes (M)` = total_aportes / 1e6,
+    `Respaldo año 1 (M)` = respaldo_anio1 / 1e6
+  )
 ```
