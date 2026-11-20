@@ -1198,111 +1198,97 @@ N0 <- datos_poblacion$activos_inicio[1]
 ```
 
 ### Profit testing
-#### Resultados de cartera 
 
 ```{r}
-para <- parametros_profit
+profit_testing <- function(para, datos, caso = "Base") {
+  N0 <- datos$activos_inicio[1]
+  n_anios <- nrow(datos)
 
-flujos_anuales <- datos_poblacion %>%
-  mutate(
-    periodo = row_number(),
-    reserva_inicial = para$reservas[1:5],
-    reserva_final = para$reservas[2:6],
-    reserva_ini_total = reserva_inicial * activos_inicio,
-    reserva_fin_total = reserva_final * activos_cierre
+  # Flujos y resultado de cartera
+  flujos <- datos %>%
+    mutate(
+      periodo = row_number(),
+      reserva_inicial = para$reservas[seq_len(n_anios)],
+      reserva_final = para$reservas[seq_len(n_anios) + 1],
+      reserva_ini_total = reserva_inicial * activos_inicio,
+      reserva_fin_total = reserva_final * activos_cierre,
+      primas = para$prima_anual * activos_inicio,
+      gastos = para$gasto_vigente * activos_inicio,
+      comisiones = para$comision_prima * primas,
+      fondos_acumulados = (reserva_ini_total + primas - gastos - comisiones) *
+        (1 + para$rendimiento_i),
+      beneficios = para$beneficio_muerte * fallecimientos_esp,
+      resultado_cartera = fondos_acumulados - beneficios - reserva_fin_total,
+      v_cierre = (1 + para$descuento_d)^(-periodo),
+      v_inicio = (1 + para$descuento_d)^(-(periodo - 1)),
+      vp_resultado = resultado_cartera * v_cierre,
+      vp_primas = primas * v_inicio,
+      vp_beneficios = beneficios * v_cierre,
+      profit_vector = resultado_cartera / activos_inicio,
+      profit_signature = resultado_cartera / N0
+    )
+
+  # NPV y margen
+  npv <- -para$adquisicion * N0 + sum(flujos$vp_resultado)
+  margen <- npv / sum(flujos$vp_primas)
+
+  # Recursos y aportes
+  fondo_inicial <- (para$recursos_contrato - para$adquisicion) * N0
+  fondo_inicio_anio <- numeric(n_anios)
+  fondo_antes_aporte <- numeric(n_anios)
+  aporte <- numeric(n_anios)
+  fondo_despues <- numeric(n_anios)
+
+  fondo_previo <- fondo_inicial
+  for (i in seq_len(n_anios)) {
+    fondo_inicio_anio[i] <- fondo_previo
+    fondo_antes_aporte[i] <- (fondo_previo +
+      flujos$primas[i] -
+      flujos$gastos[i] -
+      flujos$comisiones[i]) *
+      (1 + para$rendimiento_i) -
+      flujos$beneficios[i]
+    aporte[i] <- max(-fondo_antes_aporte[i], 0)
+    fondo_despues[i] <- fondo_antes_aporte[i] + aporte[i]
+    fondo_previo <- fondo_despues[i]
+  }
+
+  tabla_fondos <- tibble(
+    Anio = flujos$Anio,
+    periodo = flujos$periodo,
+    fondo_inicio_anio = fondo_inicio_anio,
+    fondo_antes_aporte = fondo_antes_aporte,
+    aporte = aporte,
+    fondo_despues = fondo_despues
   )
 
-flujos_anuales <- flujos_anuales %>%
-  mutate(
-    fondos_acumulados = (reserva_ini_total +
-      (para$prima_anual -
-        para$gasto_vigente -
-        para$comision_prima * para$prima_anual) *
-        activos_inicio) *
-      (1 + para$rendimiento_i),
-    beneficios = para$beneficio_muerte * fallecimientos_esp,
-    resultado_cartera = fondos_acumulados - beneficios - reserva_fin_total
+  respaldo_anio1 <- tabla_fondos$fondo_antes_aporte[1] -
+    flujos$reserva_fin_total[1]
+
+  resumen <- tibble(
+    caso = caso,
+    vp_beneficios = sum(flujos$vp_beneficios),
+    npv = npv,
+    margen = margen,
+    saldo_minimo = min(tabla_fondos$fondo_antes_aporte),
+    total_aportes = sum(tabla_fondos$aporte),
+    respaldo_anio1 = respaldo_anio1
   )
-```
-
-#### NPV y margen
-
-```{r}
-flujos_anuales <- flujos_anuales %>%
-  mutate(
-    v_cierre = (1 + para$descuento_d)^(-periodo),
-    v_inicio = (1 + para$descuento_d)^(-(periodo - 1)),
-    vp_resultado = resultado_cartera * v_cierre,
-    vp_primas = para$prima_anual * v_inicio * activos_inicio
-  )
-
-npv_base <- -para$adquisicion * N0 + sum(flujos_anuales$vp_resultado)
-margen_base <- npv_base /
-  sum(flujos_anuales$vp_primas)
-
-flujos_anuales <- flujos_anuales %>%
-  mutate(
-    primas = para$prima_anual * activos_inicio,
-    gastos = para$gasto_vigente * activos_inicio,
-    comisiones = para$comision_prima * primas,
-    profit_vector = resultado_cartera / activos_inicio,
-    profit_signature = resultado_cartera / N0,
-    vp_beneficios = beneficios * v_cierre
-  )
-```
-
-#### Fondos y aportes adicionales
-
-```{r}
-fondo_inicial <- (para$recursos_contrato - para$adquisicion) * N0
-
-n_anios <- nrow(flujos_anuales)
-fondo_inicio_anio <- numeric(n_anios)
-fondo_antes_aporte <- numeric(n_anios)
-aporte <- numeric(n_anios)
-fondo_despues <- numeric(n_anios)
-
-fondo_previo <- fondo_inicial
-for (i in 1:n_anios) {
-  fondo_inicio_anio[i] <- fondo_previo
-  fondo_antes_aporte[i] <- (fondo_previo +
-    (para$prima_anual -
-      para$gasto_vigente -
-      para$comision_prima *
-        para$prima_anual) *
-      flujos_anuales$activos_inicio[i]) *
-    (1 + para$rendimiento_i) -
-    para$beneficio_muerte * flujos_anuales$fallecimientos_esp[i]
-  aporte[i] <- max(-fondo_antes_aporte[i], 0)
-  fondo_despues[i] <- fondo_antes_aporte[i] + aporte[i]
-  fondo_previo <- fondo_despues[i]
+  list(flujos = flujos, fondos = tabla_fondos, resumen = resumen)
 }
+```
 
-tabla_fondos <- tibble(
-  Anio = flujos_anuales$Anio,
-  periodo = flujos_anuales$periodo,
-  fondo_inicio_anio = fondo_inicio_anio,
-  fondo_antes_aporte = fondo_antes_aporte,
-  aporte = aporte,
-  fondo_despues = fondo_despues
-)
+### Caso base
 
-saldo_minimo <- min(tabla_fondos$fondo_antes_aporte)
-total_aportes <- sum(tabla_fondos$aporte)
-
-respaldo_anio1 <- tabla_fondos$fondo_antes_aporte[1] -
-  flujos_anuales$reserva_fin_total[1]
-
-resumen_base <- tibble(
-  caso = "Base",
-  vp_beneficios = sum(flujos_anuales$vp_beneficios),
-  npv = npv_base,
-  margen = margen_base,
-  saldo_minimo = saldo_minimo,
-  total_aportes = total_aportes,
-  respaldo_anio1 = respaldo_anio1
+```{r}
+testing_base <- profit_testing(
+  parametros_profit,
+  datos_poblacion,
+  caso = "Base"
 )
 ```
+
+## Sección D: 
 
 ## Sección E: Equity-linked y rentabilidad estocástica
 
@@ -1466,7 +1452,7 @@ if (is.na(trayectoria)) {
 }
 print(trayectoria)
 
-# Se construye la tabla de la cuenta 
+# Se construye la tabla de la cuenta
 detalle_cuenta <- data.frame(
   Anio = 1:numero_anios,
   Saldo_inicio = saldos_inicio[trayectoria, ],
