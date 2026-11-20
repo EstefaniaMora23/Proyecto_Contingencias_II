@@ -95,6 +95,8 @@ Se trabajó con 104 005 activos, clasificados según su edad inicial al 31 de di
 | Exclusiones propias de B              |        0 |
 | Parejas admisibles para la valoración |   97 250 |
 
+: Clasificación de los activos y parejas hipotéticas admisibles para la valoración en la sección B. {#tbl-clasificacion-parejas}
+
 Por otro lado, la edad inicial del cónyuge se asignó según la edad y el sexo del activo. Entre los 30 y 34 años, ambos tenían la misma edad. Entre los 35 y 54 años, se supuso que el cónyuge era tres años menor si el activo era hombre y tres años mayor si era mujer. A partir de los 55 años, la diferencia fue de cinco años en el mismo sentido.
 
 La pareja asignada y la diferencia de edad se mantuvieron durante los cinco años. Por ello, quienes tenían menos de 30 años al inicio permanecieron sin pareja en esta proyección. Se verificó que la edad inicial del cónyuge no excediera 106 años y que existieran probabilidades de mortalidad para ambas personas durante todo el horizonte.
@@ -115,6 +117,8 @@ La siguiente tabla presenta las cantidades esperadas de parejas que cumplen cada
 | 2029 |   89 296,64 |         96 600,59 |                          3 524,76 |
 | 2030 |   87 312,19 |         96 250,83 |                          4 329,45 |
 
+: Número esperado de parejas por estado de supervivencia entre 2026 y 2030. {#tbl-estados-supervivencia}
+
 Las cantidades esperadas de parejas con ambos integrantes vivos disminuyen de 95 249,78 al cierre de 2026 a 87 312,19 al cierre de 2030. Esto ocurre porque, conforme transcurren los años, aumenta la posibilidad de que al menos una de las dos personas haya fallecido.
 
 La cantidad correspondiente al último sobreviviente también disminuye, pero más lentamente. Para cumplir este estatus basta con que una de las dos personas siga viva; por eso incluye tanto a las parejas en que ambos viven como a aquellas en que solo vive uno.
@@ -130,6 +134,8 @@ Para cada estatus se valoró una renta temporal que paga una unidad monetaria al
 | Vida conjunta         |  407 052,39 |                       4,185629 |
 | Último sobreviviente  |  431 037,26 |                       4,432260 |
 | Cónyuge sobreviviente |   11 556,52 |                       0,118833 |
+
+: Valor presente agregado y promedio por pareja inicial de las tres coberturas alternativas. {#tbl-valores-presentes}
 
 La renta de último sobreviviente tiene el mayor VP agregado, 431 037,26, porque paga al cierre de cada año en que al menos una persona siga viva, incluso cuando ambas sobreviven. La renta de vida conjunta alcanza 407 052,39 y solo paga mientras ambos estén vivos; sus pagos cesan tras el primer fallecimiento.
 
