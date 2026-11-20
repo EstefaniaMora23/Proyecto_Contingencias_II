@@ -1149,6 +1149,7 @@ verificaciones_B <- data.frame(
 
 View(verificaciones_B)
 ```
+
 ## Sección C: Flujos, reservas suministradas y profit testing
 
 ### Parámetros de la cartera
@@ -1193,7 +1194,7 @@ datos_poblacion <- distribucion_anual_general %>%
     activos_cierre = sum(Poblacion_final)
   )
 
-N0_C <- datos_poblacion$activos_inicio[1]
+N0 <- datos_poblacion$activos_inicio[1]
 ```
 
 ### Profit testing
@@ -1232,8 +1233,75 @@ flujos_anuales <- flujos_anuales %>%
     v_cierre = (1 + para$descuento_d)^(-periodo),
     v_inicio = (1 + para$descuento_d)^(-(periodo - 1)),
     vp_resultado = resultado_cartera * v_cierre,
-    vp_primas = para$prima_anual * v_inicio
+    vp_primas = para$prima_anual * v_inicio * activos_inicio
   )
+
+npv_base <- -para$adquisicion * N0 + sum(flujos_anuales$vp_resultado)
+margen_base <- npv_base /
+  sum(flujos_anuales$vp_primas)
+
+flujos_anuales <- flujos_anuales %>%
+  mutate(
+    primas = para$prima_anual * activos_inicio,
+    gastos = para$gasto_vigente * activos_inicio,
+    comisiones = para$comision_prima * primas,
+    profit_vector = resultado_cartera / activos_inicio,
+    profit_signature = resultado_cartera / N0,
+    vp_beneficios = beneficios * v_cierre
+  )
+```
+
+#### Fondos y aportes adicionales
+
+```{r}
+fondo_inicial <- (para$recursos_contrato - para$adquisicion) * N0
+
+n_anios <- nrow(flujos_anuales)
+fondo_inicio_anio <- numeric(n_anios)
+fondo_antes_aporte <- numeric(n_anios)
+aporte <- numeric(n_anios)
+fondo_despues <- numeric(n_anios)
+
+fondo_previo <- fondo_inicial
+for (i in 1:n_anios) {
+  fondo_inicio_anio[i] <- fondo_previo
+  fondo_antes_aporte[i] <- (fondo_previo +
+    (para$prima_anual -
+      para$gasto_vigente -
+      para$comision_prima *
+        para$prima_anual) *
+      flujos_anuales$activos_inicio[i]) *
+    (1 + para$rendimiento_i) -
+    para$beneficio_muerte * flujos_anuales$fallecimientos_esp[i]
+  aporte[i] <- max(-fondo_antes_aporte[i], 0)
+  fondo_despues[i] <- fondo_antes_aporte[i] + aporte[i]
+  fondo_previo <- fondo_despues[i]
+}
+
+tabla_fondos <- tibble(
+  Anio = flujos_anuales$Anio,
+  periodo = flujos_anuales$periodo,
+  fondo_inicio_anio = fondo_inicio_anio,
+  fondo_antes_aporte = fondo_antes_aporte,
+  aporte = aporte,
+  fondo_despues = fondo_despues
+)
+
+saldo_minimo <- min(tabla_fondos$fondo_antes_aporte)
+total_aportes <- sum(tabla_fondos$aporte)
+
+respaldo_anio1 <- tabla_fondos$fondo_antes_aporte[1] -
+  flujos_anuales$reserva_fin_total[1]
+
+resumen_base <- tibble(
+  caso = "Base",
+  vp_beneficios = sum(flujos_anuales$vp_beneficios),
+  npv = npv_base,
+  margen = margen_base,
+  saldo_minimo = saldo_minimo,
+  total_aportes = total_aportes,
+  respaldo_anio1 = respaldo_anio1
+)
 ```
 
 ## Sección E: Equity-linked y rentabilidad estocástica
