@@ -242,6 +242,8 @@ El resultado económico y el efectivo no coinciden. El resultado $\Pi_t$ descuen
 
 # D. Escenario adverso y respaldo de las reservas
 
+## Escenario adverso
+
 En el escenario adverso el gasto anual es de 11 000 por contrato vigente y el rendimiento anual es del 4 %. Con estos datos se recalcularon los flujos, los resultados y los recursos, y se comparan con el escenario base en la @tbl-adverso.
 
 | Caso | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
@@ -257,6 +259,22 @@ El escenario adverso empeora los cuatro indicadores: el NPV pasa de -12 913,9692
 Los recursos no cubren la reserva suministrada en ninguno de los dos escenarios. Al cierre del año 1 y antes del aporte, los recursos son de 1 972,3134 M en el base y de 1 799,1450 M en el adverso, frente a una reserva de 3 997,1626 M, es decir, cubren el 49,34 % y el 45,01 % de la reserva, respectivamente. El faltante ya existe en el caso base, por lo que el escenario adverso solo lo empeora.
 
 Se recomienda aumentar la prima anual. En el año 1, el costo esperado de los fallecimientos, de 46 661,3602 por contrato, supera la prima neta de gasto y comisión, que es de 37 500,0000 en el base y de 36 500,0000 en el adverso. Para que los recursos igualen la reserva al cierre del año 1 en el escenario adverso, la prima anual debería ser de al menos 71 390,4540 por contrato (69 517,5625 en el base), un aumento de 42,78 % (39,04 %) respecto a 50 000. Con esa prima, los recursos también cubren la reserva en los años siguientes. Este nivel es un mínimo para cubrir la reserva y no garantiza un NPV positivo.
+
+## Aumento del beneficio por fallecimiento
+
+Adicionalmente, se evaluó el aumento del beneficio por fallecimiento de 5 000 000 a 5 500 000, con la prima anual de 50 000 y los demás parámetros del caso base. Este cálculo es independiente del escenario adverso:
+
+| Caso | VP beneficios (M) | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
+|:-----------|-------------:|--------------:|---------:|-------------:|-------------:|-------------:|
+| Base | 22 104,9280 | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
+| Beneficio mayor | 24 315,4208 | -15 124,4620 | -0,6779 | -2 099,0550 | 5 610,5287 | -2 510,1508 |
+| Diferencia | 2 210,4928 | -2 210,4928 | -0,0991 | -507,0758 | 2 559,1600 | -485,3015 |
+
+: Comparación entre el beneficio de 5 000 000 (base) y el de 5 500 000 (M = millones de unidades monetarias; la fila Diferencia es beneficio mayor menos base). {#tbl-extra}
+
+Como los fallecimientos esperados no cambian, el valor presente de los beneficios aumenta exactamente 10 %, en 2 210,4928 M, y el NPV disminuye en esa misma cantidad. El saldo mínimo antes de aportes baja de -1 591,9792 M a -2 099,0550 M y los aportes totales suben de 3 051,3687 M a 5 610,5287 M. Note que el primer aporte sigue apareciendo en el año 3, pero es de 1 607,1994 M en lugar de 57,9189 M. Al cierre del año 1, los recursos antes del aporte son de 1 487,0119 M frente a una reserva de 3 997,1626 M, es decir, cubren el 37,20 % (49,34 % en el base).
+
+Al igual que en el caso base y en el adverso, la prima cobrada no alcanza para cubrir el pago esperado por fallecimiento, y el aumento del beneficio aumenta lo faltante. En el año 1, el costo esperado de fallecimientos por contrato pasa de 46 661,3602 a 51 327,4962, que supera incluso la prima de 50 000. Por ello, en los tres casos los recursos no cubren la reserva suministrada y se requieren aportes adicionales.
 
 # E. Equity-linked y rentabilidad estocástica
 
