@@ -698,7 +698,7 @@ resumen_general_activos <- bind_rows(
 View(resumen_general_activos)
 ```
 
-### Construcción de la distribución anual de la población por causa 
+### Construcción de la distribución anual de la población por causa
 
 ```{r}
 distribucion_anual_mujeres <- bind_rows(
@@ -1214,6 +1214,8 @@ tabla_md <- function(tabla, digits = 4) {
 ```
 
 ### Profit testing
+
+#### Resultados de cartera
 
 ```{r}
 profit_testing <- function(para, datos, caso = "Base") {
