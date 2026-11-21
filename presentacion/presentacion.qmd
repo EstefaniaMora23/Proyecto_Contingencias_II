@@ -1,0 +1,88 @@
+---
+title: "Aumento del beneficio por fallecimiento en un seguro colectivo"
+subtitle: "NPV, efectivo y respaldo de las reservas"
+author:
+  - Alexandra González Bermúdez
+  - Emily Estefanía Mora Contreras
+  - César Salazar
+  - Daniela Prado Vargas
+lang: es
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    fonttheme: serif
+    section-titles: false
+    keep-tex: true
+    include-in-header:
+      - text: |
+          \usepackage{tikz}
+          \usetikzlibrary{calc}
+
+          \definecolor{fondo}{HTML}{FAF6F1}
+          \definecolor{texto}{HTML}{2E2226}
+          \definecolor{vino}{HTML}{6F2C45}
+          \definecolor{champana}{HTML}{C4A27F}
+          \definecolor{beige}{HTML}{EFE4DA}
+          \definecolor{gris}{HTML}{7D7075}
+
+          \setbeamertemplate{navigation symbols}{}
+          \setbeamersize{text margin left=1.6cm,text margin right=1.2cm}
+
+          \setbeamercolor{normal text}{fg=texto,bg=fondo}
+          \setbeamercolor{structure}{fg=vino}
+          \setbeamercolor{frametitle}{fg=vino}
+          \setbeamercolor{footline}{fg=gris}
+          \setbeamercolor{block title}{fg=vino,bg=beige}
+          \setbeamercolor{block body}{fg=texto,bg=beige}
+          \setbeamertemplate{blocks}[default]
+          \setbeamertemplate{itemize item}{\color{champana}\rule[0.35ex]{0.9ex}{0.9ex}}
+          \setbeamertemplate{itemize subitem}{\color{champana}\textendash}
+
+          \setbeamertemplate{background canvas}{%
+            \begin{tikzpicture}[remember picture,overlay]
+              \fill[fondo] (current page.south west) rectangle (current page.north east);
+              \fill[vino] (current page.south west) rectangle ($(current page.north west)+(0.55,0)$);
+              \draw[champana,line width=0.6pt]
+                ($(current page.south west)+(0.8,0)$) -- ($(current page.north west)+(0.8,0)$);
+            \end{tikzpicture}}
+
+          \setbeamertemplate{frametitle}{%
+            \nointerlineskip\vskip3.5ex
+            \begin{beamercolorbox}[wd=\paperwidth,leftskip=1.6cm,rightskip=1.2cm]{frametitle}
+              {\Large\bfseries\insertframetitle\par}
+              \vskip1ex
+              {\color{champana}\rule{1.2cm}{1.4pt}\color{beige}\rule{\dimexpr\paperwidth-4cm\relax}{0.5pt}}
+            \end{beamercolorbox}}
+
+          \setbeamertemplate{footline}{%
+            \ifnum\insertframenumber>1
+              \leavevmode
+              \hbox{%
+                \begin{beamercolorbox}[wd=.7\paperwidth,ht=3ex,dp=1.5ex,leftskip=1.6cm]{footline}
+                \end{beamercolorbox}%
+                \begin{beamercolorbox}[wd=.3\paperwidth,ht=3ex,dp=1.5ex,rightskip=1.2cm]{footline}
+                  \hfill\scriptsize\insertframenumber
+                \end{beamercolorbox}}%
+              \vskip0.4cm
+            \fi}
+
+          \setbeamertemplate{title page}{%
+            \raggedright
+            {\fontsize{24}{28}\selectfont\color{vino}\bfseries\inserttitle\par}
+            \vskip1.5ex
+            {\color{champana}\rule{3cm}{1.4pt}\par}
+            \vskip1.5ex
+            {\large\color{gris}\insertsubtitle\par}
+            \vskip5ex
+            {\color{texto}%
+              Alexandra González Bermúdez\\
+              Emily Estefanía Mora Contreras\\
+              César Salazar\\
+              Daniela Prado Vargas\par}}
+---
+
+## Prueba de diapositiva
+
+- Primer punto
+- Segundo punto
