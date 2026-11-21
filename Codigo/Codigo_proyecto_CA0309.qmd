@@ -1388,6 +1388,39 @@ testing_adverso <- profit_testing(
   caso = "Adverso"
 )
 
+# Respaldo de cada año
+
+respaldo_por_anio <- function(prima, para, datos) {
+  n_anios <- nrow(datos)
+  neta <- prima * (1 - para$comision_prima) - para$gasto_vigente # por contrato
+  reserva_total <- para$reservas[2:(n_anios + 1)] * datos$activos_cierre
+  beneficios <- para$beneficio_muerte * datos$fallecimientos_esp
+  fondo <- (para$recursos_contrato - para$adquisicion) * datos$activos_inicio[1]
+
+  respaldo <- numeric(n_anios)
+  for (i in seq_len(n_anios)) {
+    fondo <- (fondo + neta * datos$activos_inicio[i]) *
+      (1 + para$rendimiento_i) -
+      beneficios[i]
+    respaldo[i] <- fondo - reserva_total[i]
+  }
+  respaldo
+}
+
+# Prima que hace respaldo = 0 en el año indicado
+
+prima_minima <- function(para, datos, anio = 1) {
+  uniroot(
+    function(p) respaldo_por_anio(p, para, datos)[anio],
+    interval = c(para$prima_anual, 5 * para$prima_anual),
+    tol = 1e-8
+  )$root
+}
+
+prima_min_base <- prima_minima(parametros_profit, datos_poblacion)
+prima_min_adverso <- prima_minima(parametros_adverso, datos_poblacion)
+format(c(prima_min_base, prima_min_adverso), nsmall = 4)
+
 cuadro_adverso <- bind_rows(testing_base$resumen, testing_adverso$resumen) %>%
   select(caso, npv, margen, saldo_minimo, total_aportes, respaldo_anio1) %>%
   comparacion_escenarios()
@@ -1564,7 +1597,12 @@ grafico_hist <- ggplot(datos_hist, aes(x = NPV)) +
   theme_minimal()
 
 grafico_hist
-ggsave(file.path(carpeta_tablas, "Histograma_NPV_garantias.png"), grafico_hist, width = 8, height = 6)
+ggsave(
+  file.path(carpeta_tablas, "Histograma_NPV_garantias.png"),
+  grafico_hist,
+  width = 8,
+  height = 6
+)
 ```
 
 ### Detalle de una trayectoria
