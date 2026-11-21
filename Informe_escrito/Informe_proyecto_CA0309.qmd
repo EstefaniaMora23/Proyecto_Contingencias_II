@@ -156,12 +156,6 @@ Se proyectaron durante cinco años las primas, los gastos, las comisiones y los 
 
 El resultado anual de la cartera, $\Pi_t$, se calculó con el esquema de *profit testing*.
 
-  
-
-\begingroup\small
-
-  
-
 \begingroup\small
 
 | Año | Activos al inicio | Fallecimientos esperados | Primas (M) | Gastos y comisiones (M) | Beneficios (M) | Reserva final (M) | Resultado (M) |
@@ -176,67 +170,21 @@ El resultado anual de la cartera, $\Pi_t$, se calculó con el esquema de *profit
 
 \endgroup
 
-  
-
-\endgroup
-
-  
-
 El resultado es negativo en los años 1, 2, 4 y 5, y solo el año 3 muestra una ganancia pequeña, de 25,3 M.
-
-  
 
 ## Desglose del año 1
 
-  
-
-Al inicio del año 1 se emiten 104 005 contratos. Cada uno paga una prima de 50 000, y se pagan 10 000 de gasto y 2 500 de comisión (5 % de la prima), de modo que quedan 37 500 por contrato. Luego se tienen 3 900,2 M en la cartera (primas de 5 200,3 M menos costos de 1 300,1 M). Como la reserva inicial es cero, no hay recursos liberados de reserva. Esos 3 900,2 M generan el rendimiento del 5 % y llegan a 4 095,2 M al cierre. De ese monto se restan los beneficios esperados de 4 853 M y la reserva final de 3 997,2 M. El resultado es $\Pi_1=-4\,754{,}9805$ M.
-
-  
-
-| Concepto | Monto |
-|:---|---:|
-| Reserva inicial total | 0,0000 |
-| Primas netas de gasto y comisión | 3 900 187 500,0000 |
-| Fondos acumulados al cierre, con rendimiento | 4 095 196 875,0000 |
-| Beneficios por fallecimiento | 4 853 014 765,4822 |
-| Reserva final total | 3 997 162 633,4776 |
-| Resultado de cartera | -4 754 980 523,9598 |
-
-: Desglose del cálculo del año 1 (unidades monetarias). {#tbl-desglose-anio1}
-
-  
+Al inicio del año 1 se emiten 104 005 contratos. Cada uno paga una prima de 50 000, y se pagan 10 000 de gasto y 2 500 de comisión (5 % de la prima), de modo que quedan 37 500 por contrato. Luego se tienen 3 900,2 M en la cartera (primas de 5 200,3 M menos costos de 1 300,1 M). Como la reserva inicial es cero, no hay recursos liberados de reserva. Esos 3 900,2 M generan el rendimiento del 5 % y llegan a 4 095,2 M al cierre. De ese monto se restan los beneficios esperados de 4 853 M y la reserva final de 3 997,2 M. El resultado es $\Pi_1=-4\,754{,}9805$ M. El desglose completo, con los montos en unidades monetarias, se presenta en la @tbl-desglose-anio1 (Anexo C). 
 
 ## Recursos y aportes
 
-  
-
 Los recursos parten de 100 000 menos 75 000 de costo de adquisición por contrato emitido, entonces se tienen recursos iniciales de 2 600,1 M. Cada año se les suman las primas menos gastos y comisiones, se aplica el rendimiento y se restan los beneficios, de esta forma se obtiene el saldo de cierre antes de aporte. Si es negativo, el aporte cubre exactamente el déficit y el año siguiente comienza con saldo cero.
-
-  
-
-| Año | Periodo | Recursos al inicio (M) | Saldo antes de aporte (M) | Aporte (M) | Recursos después del aporte (M) |
-|:-----|:--------|--------------:|---------------:|-----------:|----------------:|
-| 2026 | 1 | 2 600,1250 | 1 972,3134 | 0,0000 | 1 972,3134 |
-| 2027 | 2 | 1 972,3134 | 1 086,5129 | 0,0000 | 1 086,5129 |
-| 2028 | 3 | 1 086,5129 | -57,9189 | 57,9189 | 0,0000 |
-| 2029 | 4 | 0,0000 | -1 401,4706 | 1 401,4706 | 0,0000 |
-| 2030 | 5 | 0,0000 | -1 591,9792 | 1 591,9792 | 0,0000 |
-
-: Recursos y aportes por año en el caso base (M = millones de unidades monetarias). {#tbl-fondos-base}
-  
 
 El saldo es positivo en los años 1 y 2 y se vuelve negativo desde el año 3, cuando aparece el primer aporte de 57,9 M. El saldo mínimo antes de aportes es de -1 592 M y los aportes suman 3 051,4 M.
 
-  
-
 ## NPV, margen y resultado económico frente a efectivo
 
-  
-
 El NPV descuenta al 4 % los resultados de cierre y suma el gasto de adquisición, una sola vez, en el momento inicial. Es de -12 914 M. El valor presente de las primas, descontadas desde su momento de pago, es de 22 310,7 M, por lo que el margen es de -57,88 % por cada unidad de prima descontada
-
-  
 
 El resultado económico y el efectivo no coinciden. El resultado $\Pi_t$ descuenta la reserva final, porque es una obligación futura, por otro lado, el efectivo no la incluye, porque la reserva no es una entrada ni una salida de caja. Por eso en los años 1 y 2 hay pérdida económica con saldo de efectivo positivo, y en el año 3 ocurre lo contrario, pues el resultado económico positivo pero saldo negativo.
 
@@ -244,17 +192,9 @@ El resultado económico y el efectivo no coinciden. El resultado $\Pi_t$ descuen
 
 ## Escenario adverso
 
-En el escenario adverso el gasto anual es de 11 000 por contrato vigente y el rendimiento anual es del 4 %. Con estos datos se recalcularon los flujos, los resultados y los recursos, y se comparan con el escenario base en la @tbl-adverso.
+En el escenario adverso el gasto anual es de 11 000 por contrato vigente y el rendimiento anual es del 4 %. Con estos datos se recalcularon los flujos, los resultados y los recursos, y se comparan con el escenario base en la @tbl-adverso (Anexo D), cuyos resultados principales se resumen a continuación.
 
-| Caso | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
-|:-----------|--------------:|---------:|--------------:|--------------:|--------------:|
-| Base | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
-| Adverso | -13 618,4683 | -0,6104 | -1 716,9944 | 3 808,2285 | -2 198,0176 |
-| Diferencia | -704,4991 | -0,0316 | -125,0152 | 756,8598 | -173,1683 |
-
-: Comparación entre el escenario base y el adverso (M = millones de unidades monetarias; la fila Diferencia es adverso menos base). {#tbl-adverso}
-
-El escenario adverso empeora los cuatro indicadores: el NPV pasa de -12 913,9692 M a -13 618,4683 M, el saldo mínimo antes de aportes de -1 591,9792 M a -1 716,9944 M, los aportes totales de 3 051,3687 M a 3 808,2285 M y el respaldo del año 1 de -2 024,8493 M a -2 198,0176 M. Tanto el gasto adicional como la reducción del rendimiento disminuyen los fondos acumulados antes de restar los beneficios esperados y la reserva de fin de año, luego como no se calcularon efectos separados, no se atribuye una parte del deterioro a cada parámetro.
+El escenario adverso empeora los cuatro indicadores. El NPV pasa de -12 913,9692 M a -13 618,4683 M (y el margen, de -0,5788 a -0,6104), el saldo mínimo antes de aportes de -1 591,9792 M a -1 716,9944 M, los aportes totales de 3 051,3687 M a 3 808,2285 M y el respaldo del año 1 de -2 024,8493 M a -2 198,0176 M. Tanto el gasto adicional como la reducción del rendimiento disminuyen los fondos acumulados antes de restar los beneficios esperados y la reserva de fin de año.
 
 Los recursos no cubren la reserva suministrada en ninguno de los dos escenarios. Al cierre del año 1 y antes del aporte, los recursos son de 1 972,3134 M en el base y de 1 799,1450 M en el adverso, frente a una reserva de 3 997,1626 M, es decir, cubren el 49,34 % y el 45,01 % de la reserva, respectivamente. El faltante ya existe en el caso base, por lo que el escenario adverso solo lo empeora.
 
@@ -262,17 +202,9 @@ Se recomienda aumentar la prima anual. En el año 1, el costo esperado de los fa
 
 ## Aumento del beneficio por fallecimiento
 
-Adicionalmente, se evaluó el aumento del beneficio por fallecimiento de 5 000 000 a 5 500 000, con la prima anual de 50 000 y los demás parámetros del caso base. Este cálculo es independiente del escenario adverso:
+Adicionalmente, se evaluó el aumento del beneficio por fallecimiento de 5 000 000 a 5 500 000, con la prima anual de 50 000 y los demás parámetros del caso base. Este cálculo es independiente del escenario adverso y su comparación completa con el caso base se presenta en la @tbl-extra (Anexo D).
 
-| Caso | VP beneficios (M) | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
-|:-----------|-------------:|--------------:|---------:|-------------:|-------------:|-------------:|
-| Base | 22 104,9280 | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
-| Beneficio mayor | 24 315,4208 | -15 124,4620 | -0,6779 | -2 099,0550 | 5 610,5287 | -2 510,1508 |
-| Diferencia | 2 210,4928 | -2 210,4928 | -0,0991 | -507,0758 | 2 559,1600 | -485,3015 |
-
-: Comparación entre el beneficio de 5 000 000 (base) y el de 5 500 000 (M = millones de unidades monetarias; la fila Diferencia es beneficio mayor menos base). {#tbl-extra}
-
-Como los fallecimientos esperados no cambian, el valor presente de los beneficios aumenta exactamente 10 %, en 2 210,4928 M, y el NPV disminuye en esa misma cantidad. El saldo mínimo antes de aportes baja de -1 591,9792 M a -2 099,0550 M y los aportes totales suben de 3 051,3687 M a 5 610,5287 M. Note que el primer aporte sigue apareciendo en el año 3, pero es de 1 607,1994 M en lugar de 57,9189 M. Al cierre del año 1, los recursos antes del aporte son de 1 487,0119 M frente a una reserva de 3 997,1626 M, es decir, cubren el 37,20 % (49,34 % en el base).
+Como los fallecimientos esperados no cambian, el valor presente de los beneficios aumenta exactamente 10 %, en 2 210,4928 M (de 22 104,9280 M a 24 315,4208 M), y el NPV disminuye en esa misma cantidad de -12 913,9692 M a -15 124,4620 M, también el margen pasa de -0,5788 a -0,6779. El saldo mínimo antes de aportes baja de -1 591,9792 M a -2 099,0550 M y los aportes totales suben de 3 051,3687 M a 5 610,5287 M. Note que el primer aporte sigue apareciendo en el año 3, pero es de 1 607,1994 M en lugar de 57,9189 M. Al cierre del año 1, los recursos antes del aporte son de 1 487,0119 M frente a una reserva de 3 997,1626 M, es decir, cubren el 37,20 % (49,34 % en el base), de modo que el respaldo del año 1 pasa de -2 024,8493 M a -2 510,1508 M.
 
 Al igual que en el caso base y en el adverso, la prima cobrada no alcanza para cubrir el pago esperado por fallecimiento, y el aumento del beneficio aumenta lo faltante. En el año 1, el costo esperado de fallecimientos por contrato pasa de 46 661,3602 a 51 327,4962, que supera incluso la prima de 50 000. Por ello, en los tres casos los recursos no cubren la reserva suministrada y se requieren aportes adicionales.
 
@@ -374,6 +306,49 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 \newpage
 
 # Anexos
+
+## Anexo C. Detalle de los cálculos de la sección C
+
+| Concepto | Monto |
+|:---|---:|
+| Reserva inicial total | 0,0000 |
+| Primas netas de gasto y comisión | 3 900 187 500,0000 |
+| Fondos acumulados al cierre, con rendimiento | 4 095 196 875,0000 |
+| Beneficios por fallecimiento | 4 853 014 765,4822 |
+| Reserva final total | 3 997 162 633,4776 |
+| Resultado de cartera | -4 754 980 523,9598 |
+
+: Desglose del cálculo del año 1 (unidades monetarias). {#tbl-desglose-anio1}
+
+| Año | Periodo | Recursos al inicio (M) | Saldo antes de aporte (M) | Aporte (M) | Recursos después del aporte (M) |
+|:-----|:--------|--------------:|---------------:|-----------:|----------------:|
+| 2026 | 1 | 2 600,1250 | 1 972,3134 | 0,0000 | 1 972,3134 |
+| 2027 | 2 | 1 972,3134 | 1 086,5129 | 0,0000 | 1 086,5129 |
+| 2028 | 3 | 1 086,5129 | -57,9189 | 57,9189 | 0,0000 |
+| 2029 | 4 | 0,0000 | -1 401,4706 | 1 401,4706 | 0,0000 |
+| 2030 | 5 | 0,0000 | -1 591,9792 | 1 591,9792 | 0,0000 |
+
+: Recursos y aportes por año en el caso base (M = millones de unidades monetarias). {#tbl-fondos-base}
+
+## Anexo D. Escenario adverso y aumento del beneficio
+
+| Caso | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
+|:-----------|--------------:|---------:|--------------:|--------------:|--------------:|
+| Base | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
+| Adverso | -13 618,4683 | -0,6104 | -1 716,9944 | 3 808,2285 | -2 198,0176 |
+| Diferencia | -704,4991 | -0,0316 | -125,0152 | 756,8598 | -173,1683 |
+
+: Comparación entre el escenario base y el adverso (M = millones de unidades monetarias; la fila Diferencia es adverso menos base). {#tbl-adverso}
+
+| Caso | VP beneficios (M) | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
+|:-----------|-------------:|--------------:|---------:|-------------:|-------------:|-------------:|
+| Base | 22 104,9280 | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
+| Beneficio mayor | 24 315,4208 | -15 124,4620 | -0,6779 | -2 099,0550 | 5 610,5287 | -2 510,1508 |
+| Diferencia | 2 210,4928 | -2 210,4928 | -0,0991 | -507,0758 | 2 559,1600 | -485,3015 |
+
+: Comparación entre el beneficio de 5 000 000 (base) y el de 5 500 000 (M = millones de unidades monetarias; la fila Diferencia es beneficio mayor menos base). {#tbl-extra}
+
+## Anexo E. Equity-linked
 
 Detalle año a año de la trayectoria 4
 
