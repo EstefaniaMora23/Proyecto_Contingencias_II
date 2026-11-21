@@ -4,7 +4,7 @@ subtitle: "NPV, efectivo y respaldo de las reservas"
 author:
   - Alexandra González Bermúdez
   - Emily Estefanía Mora Contreras
-  - César Salazar
+  - César Salazar Amaya
   - Daniela Prado Vargas
 lang: es
 format:
