@@ -150,6 +150,59 @@ Los resultados se basan en parejas hipotéticas, diferencias de edad fijadas por
 
 # C. Flujos, reservas suministradas y profit testing
 
+Se proyectaron durante cinco años las primas, los gastos, las comisiones y los beneficios por fallecimiento de la cartera, a partir de los activos y los fallecimientos esperados de A. Las primas, los gastos y las comisiones se pagan al inicio de cada año y dependen de los contratos vigentes en ese momento, además los beneficios se pagan al cierre y dependen de los fallecimientos esperados del año. Se utilizaron las reservas suministradas por contrato vigente al cierre (40 000, 35 000, 25 000, 15 000 y 0), de modo que la reserva total es ese importe multiplicado por los activos al cierre.
+
+El resultado anual de la cartera, $\Pi_t$, se calculó con el esquema de *profit testing*.
+
+| Año | Activos al inicio | Fallecimientos esperados | Primas (M) | Gastos y comisiones (M) | Beneficios (M) | Reserva final (M) | Resultado (M) |
+|:---|---:|---:|---:|---:|---:|---:|---:|
+| 2026 | 104 005,0000 | 970,6030 | 5 200,2500 | 1 300,0625 | 4 853,0148 | 3 997,1626 | -4 754,9805 |
+| 2027 | 99 929,0658 | 983,8246 | 4 996,4533 | 1 249,1133 | 4 919,1231 | 3 358,6839 | -146,0792 |
+| 2028 | 95 962,3959 | 995,4554 | 4 798,1198 | 1 199,5299 | 4 977,2768 | 2 302,5820 | 25,2787 |
+| 2029 | 92 103,2788 | 1 005,6074 | 4 605,1639 | 1 151,2910 | 5 028,0372 | 1 325,2492 | -309,0087 |
+| 2030 | 88 349,9438 | 1 014,1516 | 4 417,4972 | 1 104,3743 | 5 070,7582 | 0,0000 | -200,4676 |
+
+: Flujos, reservas y resultado anual de la cartera en el caso base (M = millones de unidades monetarias). {#tbl-flujos-base}
+
+El resultado es negativo en los años 1, 2, 4 y 5, y solo el año 3 muestra una ganancia pequeña, de 25,3 M. 
+
+## Desglose del año 1
+
+Al inicio del año 1 se emiten 104 005 contratos. Cada uno paga una prima de 50 000, y se pagan 10 000 de gasto y 2 500 de comisión (5 % de la prima), de modo que quedan 37 500 por contrato. Luego se tienen 3 900,2 M en la cartera (primas de 5 200,3 M menos costos de 1 300,1 M). Como la reserva inicial es cero, no hay recursos liberados de reserva. Esos 3 900,2 M generan el rendimiento del 5 % y llegan a 4 095,2 M al cierre. De ese monto se restan los beneficios esperados de 4 853 M y la reserva final de 3 997,2 M. El resultado es $\Pi_1=-4\,754{,}9805$ M.
+
+| Concepto                                     |               Monto |
+| :------------------------------------------- | ------------------: |
+| Reserva inicial total                        |              0,0000 |
+| Primas netas de gasto y comisión             |  3 900 187 500,0000 |
+| Fondos acumulados al cierre, con rendimiento |  4 095 196 875,0000 |
+| Beneficios por fallecimiento                 |  4 853 014 765,4822 |
+| Reserva final total                          |  3 997 162 633,4776 |
+| Resultado de cartera                         | -4 754 980 523,9598 |
+
+: Desglose del cálculo del año 1 (unidades monetarias). {#tbl-desglose-anio1}
+
+## Recursos y aportes
+
+Los recursos parten de 100 000 menos 75 000 de costo de adquisición por contrato emitido, entonces se tienen recursos iniciales de 2 600,1 M. Cada año se les suman las primas menos gastos y comisiones, se aplica el rendimiento y se restan los beneficios, de esta forma se obtiene el saldo de cierre antes de aporte. Si es negativo, el aporte cubre exactamente el déficit y el año siguiente comienza con saldo cero.
+
+| Año  | Periodo | Recursos al inicio (M) | Saldo antes de aporte (M) | Aporte (M) | Recursos después del aporte (M) |
+| :--- | :------ | ---------------------: | ------------------------: | ---------: | ------------------------------: |
+| 2026 | 1       |             2 600,1250 |                1 972,3134 |     0,0000 |                      1 972,3134 |
+| 2027 | 2       |             1 972,3134 |                1 086,5129 |     0,0000 |                      1 086,5129 |
+| 2028 | 3       |             1 086,5129 |                  -57,9189 |    57,9189 |                          0,0000 |
+| 2029 | 4       |                 0,0000 |               -1 401,4706 | 1 401,4706 |                          0,0000 |
+| 2030 | 5       |                 0,0000 |               -1 591,9792 | 1 591,9792 |                          0,0000 |
+
+: Recursos y aportes por año en el caso base (M = millones de unidades monetarias). {#tbl-fondos-base}
+
+El saldo es positivo en los años 1 y 2 y se vuelve negativo desde el año 3, cuando aparece el primer aporte de 57,9 M. El saldo mínimo antes de aportes es de -1 592 M y los aportes suman 3 051,4 M. 
+
+## NPV, margen y resultado económico frente a efectivo
+
+El NPV descuenta al 4 % los resultados de cierre y suma el gasto de adquisición, una sola vez, en el momento inicial. Es de -12 914 M. El valor presente de las primas, descontadas desde su momento de pago, es de 22 310,7 M, por lo que el margen es de -57,88 % por cada unidad de prima descontada
+
+El resultado económico y el efectivo no coinciden. El resultado $\Pi_t$ descuenta la reserva final, porque es una obligación futura, por otro lado, el efectivo no la incluye, porque la reserva no es una entrada ni una salida de caja. Por eso en los años 1 y 2 hay pérdida económica con saldo de efectivo positivo, y en el año 3 ocurre lo contrario, pues el resultado económico positivo pero saldo negativo.
+
 # D. Escenario adverso y respaldo de las reservas
 
 # E. Equity-linked y rentabilidad estocástica
