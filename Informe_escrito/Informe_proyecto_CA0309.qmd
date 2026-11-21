@@ -178,7 +178,7 @@ Al inicio del año 1 se emiten 104 005 contratos. Cada uno paga una prima de 50 
 
 ## Recursos y aportes
 
-Los recursos parten de 100 000 menos 75 000 de costo de adquisición por contrato emitido, entonces se tienen recursos iniciales de 2 600,1 M. Cada año se les suman las primas menos gastos y comisiones, se aplica el rendimiento y se restan los beneficios, de esta forma se obtiene el saldo de cierre antes de aporte. Si es negativo, el aporte cubre exactamente el déficit y el año siguiente comienza con saldo cero.
+Los recursos parten de 100 000 menos 75 000 de costo de adquisición por contrato emitido, entonces se tienen recursos iniciales de 2 600,1 M. Cada año se les suman las primas menos gastos y comisiones, se aplica el rendimiento y se restan los beneficios, de esta forma se obtiene el saldo de cierre antes de aporte. Si es negativo, el aporte cubre exactamente el déficit y el año siguiente comienza con saldo cero. La @tbl-fondos-base (Anexo C) presenta, para cada año, los recursos al inicio, el saldo antes de aporte, el aporte y los recursos después del aporte.
 
 El saldo es positivo en los años 1 y 2 y se vuelve negativo desde el año 3, cuando aparece el primer aporte de 57,9 M. El saldo mínimo antes de aportes es de -1 592 M y los aportes suman 3 051,4 M.
 
