@@ -1,0 +1,5 @@
+"Verificacion";"Cumple"
+"Garantia mayor no disminuye el complemento en ninguna trayectoria";TRUE
+"Garantia mayor no aumenta el NPV en ninguna trayectoria";TRUE
+"Las 50 peores trayectorias son las mismas con ambas garantias";TRUE
+"Las 50 peores trayectorias activan ambas garantias";TRUE

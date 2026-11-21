@@ -4,6 +4,25 @@ format: html
 editor: visual
 ---
 
+# Instrucciones de ejecución
+
+1. Software: R 4.5.1. La simulación de la sección E usa `set.seed(2026)`; otra versión de R o de lenguaje puede producir una muestra distinta.
+2. Paquetes: `readxl`, `here`, `dplyr`, `expm`, `knitr`, `ggplot2`.
+3. Estructura: el proyecto se entrega como un `.zip` con las carpetas necesarias para ejecutar el código:
+
+```
+Proyecto_Contingencias_II/
+├── Base_datos/
+│   ├── Población_CA-0309.xlsx
+│   └── CA0309_Mortalidad_CR2023.csv
+└── Codigo/
+    └── Codigo_proyecto_CA0309.qmd
+```
+
+4. Ejecución: descargar el `.zip` completo (o la carpeta completa desde GitHub), descomprimirlo sin cambiar la estructura y renderizar `Codigo/Codigo_proyecto_CA0309.qmd` completo, de arriba abajo. Las secciones dependen entre sí: C usa los resultados de A; D y el cálculo adicional usan C; E usa la mortalidad cargada en A y la función `tabla_md` de C.
+5. Salidas: las tablas y el histograma de E (PNG) se crean al renderizar en `Codigo/Resultados/Seccion_X/`.
+
+
 # Construcción de la base de la proyección
 
 ```{r, warning= FALSE}
@@ -1185,6 +1204,7 @@ datos_poblacion <- distribucion_anual_general %>%
 
 N0 <- datos_poblacion$activos_inicio[1]
 ```
+
 ### Funciones auxiliares para tablas
 
 ```{r}
@@ -1359,7 +1379,7 @@ exportar_csv(testing_base$resumen, "Seccion_C", "resumen_base_C")
 exportar_csv(desglose_anio1, "Seccion_C", "desglose_anio1_C")
 ```
 
-## Sección D:  Escenario adverso y respaldo de las reservas
+## Sección D: Escenario adverso y respaldo de las reservas
 
 ```{r}
 testing_adverso <- profit_testing(
@@ -1407,6 +1427,9 @@ descuento_E <- 0.04
 # Garantias a comparar
 garantia_100 <- 100000
 garantia_110 <- 110000
+
+carpeta_tablas <- file.path("Resultados", "Seccion_E")
+dir.create(carpeta_tablas, recursive = TRUE, showWarnings = FALSE)
 ```
 
 ### Simulación de las trayectorias de la cuenta
@@ -1507,6 +1530,13 @@ comparacion_proveedor_md <- comparacion_proveedor %>%
   ) %>%
   tabla_md(digits = 2)
 comparacion_proveedor_md
+
+write.csv2(
+  comparacion_proveedor,
+  file = file.path(carpeta_tablas, "comparacion_proveedor.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ### Histograma comparativo del NPV
@@ -1534,7 +1564,7 @@ grafico_hist <- ggplot(datos_hist, aes(x = NPV)) +
   theme_minimal()
 
 grafico_hist
-ggsave("Histograma_NPV_garantias.png", grafico_hist, width = 8, height = 6)
+ggsave(file.path(carpeta_tablas, "Histograma_NPV_garantias.png"), grafico_hist, width = 8, height = 6)
 ```
 
 ### Detalle de una trayectoria
@@ -1588,6 +1618,20 @@ detalle_cuenta_md <- detalle_cuenta %>%
     format.args = list(nsmall = 2, big.mark = " ", decimal.mark = ",")
   )
 detalle_cuenta_md
+
+write.csv2(
+  detalle_cuenta,
+  file = file.path(carpeta_tablas, "detalle_cuenta_trayectoria.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
+write.csv2(
+  detalle_garantias,
+  file = file.path(carpeta_tablas, "detalle_garantias_trayectoria.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ### Verificaciones de la sección E
@@ -1618,6 +1662,13 @@ factor_vp_complemento <- perm_vencimiento * factor_complemento
 factor_vp_complemento
 cte95(NPV_110) - cte95(NPV_100)
 10000 * factor_vp_complemento
+
+write.csv2(
+  verificaciones_E,
+  file = file.path(carpeta_tablas, "verificaciones_E.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ## Extra Grupo 3
