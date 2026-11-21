@@ -838,8 +838,6 @@ revision_poblacion_B <- data.frame(
     nrow(base_B)
   )
 )
-
-View(revision_poblacion_B)
 ```
 
 ### Agrupación de parejas y exclusiones propias de B
@@ -957,9 +955,6 @@ resumen_parejas_B <- data.frame(
     sum(cohortes_admisibles_B$n_inicial)
   )
 )
-
-View(resumen_parejas_B)
-View(exclusiones_B)
 ```
 
 ### Probabilidades de los tres estatus durante cinco años
@@ -1056,8 +1051,6 @@ pagos_anuales_B <- resultados_B %>%
     Conyuge_vivo_activo_fallecido = sum(pagos_conyuge),
     .groups = "drop"
   )
-
-View(pagos_anuales_B)
 ```
 
 ### Valores presentes de las rentas unitarias
@@ -1116,8 +1109,6 @@ VP_rentas_B <- VP_rentas_B %>%
     VP_promedio_por_pareja = VP_agregado /
       sum(cohortes_admisibles_B$n_inicial)
   )
-
-View(VP_rentas_B)
 ```
 
 ### Verificaciones de la sección B
@@ -1146,8 +1137,6 @@ verificaciones_B <- data.frame(
     )
   )
 )
-
-View(verificaciones_B)
 ```
 
 ## Sección C: Flujos, reservas suministradas y profit testing
