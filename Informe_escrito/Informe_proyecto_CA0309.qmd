@@ -31,7 +31,6 @@ format:
 
 El objetivo del presente informe radica en presentar los principales resultados obtenidos a partir tanto de las proyecciones como de las estimaciones ejecutadas en el archivo `Codigo_proyecto_CA0309.qmd`. En caso de que se requiera efectuar consultas a mayor profundidad sobre los datos extendidos, es preciso dirigirse al recurso mencionado y revisar el apartado denominado de la misma manera que la sección en la que está contenida la información a consultar. Asimismo, es importante destacar que la división de los resultados responde a las secciones establecidas en las indicaciones del proyecto: A. Población, decrementos y multiestado; B. Varias vidas; C. Flujos, reservas suministradas y profit testing; D. Escenario adverso y respaldo de las reservas; E. Equity-linked y rentabilidad estocástica y F. Interpretación conceptual de NIIF 17. 
 
-
 # A. Población, decrementos y multiestado
 
 En primer lugar, con el objetivo de construir la base de proyección del proyecto se partió de la población activa registrada, a la cual se le aplicó diversos filtros de acuerdo a las especificaciones extendidas. De esta forma, el resumen estadístico de la población activa resultante fue el siguiente: 
@@ -155,6 +154,52 @@ Los resultados se basan en parejas hipotéticas, diferencias de edad fijadas por
 
 # E. Equity-linked y rentabilidad estocástica
 
+## Simulación y valoración del proveedor
+
+Se analizó una cuenta individual representativa de un hombre de 45 años al inicio, independiente de la base de activos y de las parejas de la sección B, por lo que sus resultados no se agregan a los de la cartera. La cuenta parte de 100 000 sin aportaciones posteriores. El cargo del 2 % anual se calculó sobre el saldo al inicio de cada año y se dedujo antes del rendimiento, y el logrendimiento anual se generó con una distribución normal de media 0,04 y desviación estándar 0,15, independiente entre años y trayectorias. Se simularon 1 000 trayectorias de cinco años en R (versión 4.5.1) con semilla 2026, las mismas para las garantías de 100 000 y de 110 000. Una implementación en otro lenguaje podría producir una muestra distinta aun con la misma semilla.
+
+Cada cargo se ponderó por la permanencia al inicio del año, calculada con mortalidad y renuncia del 3 % actuando simultáneamente y con la edad actualizada cada año, y se descontó desde ese momento al 4 %. El complemento es la diferencia positiva entre la garantía y el saldo al cierre del año 5; se ponderó por la permanencia al vencimiento y se descontó cinco años. El NPV del proveedor es el VP de los cargos menos el VP del complemento. Se supuso independencia entre los rendimientos y la permanencia. Al salir por fallecimiento o renuncia se devuelve el saldo de la cuenta sin complemento, financiado con la propia cuenta, y el aporte inicial del cliente no se consideró ingreso del proveedor.
+
+No se simularon fallecimientos ni renuncias individuales, por lo que la frecuencia de pérdida y el CTE95 corresponden al resultado con expectativa biométrica de cada trayectoria financiera. El CTE95 es el promedio de las 50 mayores pérdidas, definidas como el negativo del NPV.
+
+## Resultados comparativos
+
+La siguiente tabla compara las dos garantías desde la perspectiva del proveedor:
+
+| Garantía | Probabilidad de activación | VP medio del complemento | NPV medio | Frecuencia de pérdida | CTE95 |
+|---------:|--------------------:|--------------------:|-----------:|------------------:|---------------:|
+| 100 000  | 36,7 %                     | 5 126,70                 | 4 054,40  | 24,6 %                | 22 959,79 |
+| 110 000  | 48,5 %                     | 8 087,64                 | 1 093,46  | 33,9 %                | 29 892,45 |
+
+: Comparación de las garantías de 100 000 y 110 000 desde la perspectiva del proveedor. {#tbl-garantias}
+
+Los importes están en unidades monetarias. La probabilidad de activación es la proporción de trayectorias en que el saldo final queda por debajo de la garantía y el proveedor debe pagar un complemento. No equivale a la frecuencia de pérdida, que cuenta las trayectorias en que el VP del complemento supera el VP de los cargos cobrados.
+
+La @fig-hist-npv muestra el NPV del proveedor con los mismos cortes y escalas en ambos paneles; la línea punteada marca el NPV igual a cero. En ambos paneles la mayor parte de las trayectorias se concentra a la derecha de cero, con la barra más alta entre 7 500 y 10 000, y ningún valor supera 15 000. A la izquierda de cero hay una cola larga que llega hasta cerca de -34 000 con la garantía de 100 000 y hasta cerca de -41 000 con la de 110 000. Con la garantía de 110 000 la barra más alta disminuye de aproximadamente 410 a 310 trayectorias y la cola izquierda se extiende y pesa más.
+
+![Histograma comparativo del NPV del proveedor según la garantía (1 000 trayectorias; mismos cortes y escalas en ambos paneles).](Histograma_NPV_garantias.png){#fig-hist-npv width="90%" fig-pos="H"}
+
+## Detalle de una trayectoria
+
+Se detalla la trayectoria 4, la primera en que se activa la garantía de 100 000. La cuenta cerró el año 5 con un saldo de 68 442,32, inferior a ambas garantías, por lo que el complemento fue de 31 557,68 con la garantía de 100 000 y de 41 557,68 con la de 110 000. El VP de los cargos, 8 242,89, es el mismo en ambos casos porque la cuenta y los cargos no dependen de la garantía.
+
+| Garantía | Saldo final | Complemento | VP del complemento | VP de los cargos | NPV        |
+|---------:|------------:|------------:|-------------------:|-----------------:|-----------:|
+| 100 000  | 68 442,32   | 31 557,68   | 21 877,86          | 8 242,89         | -13 634,97 |
+| 110 000  | 68 442,32   | 41 557,68   | 28 810,52          | 8 242,89         | -20 567,63 |
+
+: Detalle de la trayectoria 4 bajo ambas garantías. {#tbl-trayectoria}
+
+El VP del complemento equivale a aproximadamente 0,6933 veces el complemento, factor que combina la permanencia al vencimiento y el descuento de cinco años. Así, los 10 000 adicionales de complemento elevan su VP en 6 932,66 y el NPV baja en esa misma cantidad. El detalle año a año de la cuenta se presenta en el anexo (@tbl-anexo-cuenta).
+
+## Efecto de la garantía y recomendación
+
+El aumento de la garantía reduce la rentabilidad y aumenta el riesgo. El VP medio del complemento sube 2 960,94 (57,8 %) y, como los cargos son los mismos, el NPV medio baja esa misma cantidad, una caída del 73,0 %. La probabilidad de activación sube 11,8 puntos porcentuales, la frecuencia de pérdida 9,3 puntos y el CTE95 aumenta 6 932,66 (30,2 %). Esta última diferencia coincide con la de la trayectoria 4 porque las 50 peores trayectorias son las mismas con ambas garantías y en todas el saldo final queda por debajo de ambas.
+
+La frecuencia de pérdida es menor que la probabilidad de activación porque un complemento pequeño se compensa con el VP de los cargos; el proveedor solo pierde cuando el complemento descontado supera esos cargos. El NPV está acotado superiormente por el VP de los cargos y la pérdida crece a medida que el saldo final cae.
+
+Se recomienda la garantía de 100 000, que es mejor en las cuatro medidas comparadas: menor VP medio del complemento, mayor NPV medio, menor frecuencia de pérdida y menor CTE95. Subir la garantía a 110 000 con el mismo cargo del 2 % reduce el NPV medio en casi tres cuartas partes y aumenta las pérdidas de cola sin ingreso adicional para el proveedor; ofrecerla requeriría revisar el cargo, lo cual no se evaluó. Se verificó en el código que, con cargo y trayectorias iguales, la garantía mayor no disminuye el complemento ni aumenta el NPV en ninguna de las 1 000 trayectorias. Los resultados son estimaciones a partir de una muestra de 1 000 trayectorias.
+
 # F. Interpretación conceptual de NIIF 17
 
 ## 1. ¿Qué flujos del contrato considerarían en su medición inicial y qué función cumple el ajuste por riesgo no financiero, RA?
@@ -189,5 +234,21 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 |:---|:---|:---|
 | Estudiante A: Estefanía | Programación del código de la sección B de varias vidas y redacción de las secciones B y F del informe. | `Codigo_proyecto_CA0309`, sección B; `Informe_proyecto_CA0309`, secciones B y F. |
 | Estudiante B: Alexandra | Programación del código de la sección A: población, decrementos y multiestado. Redacción de la sección A en el informe.| `Codigo_proyecto_CA0309`, sección A; `Informe_proyecto_CA0309`, sección A.|
-| Estudiante C: Daniela | | |
+| Estudiante C: Daniela | Programación del código de la sección E de equity-linked (simulación de la cuenta individual, valoración del proveedor y comparación de garantías) y redacción de la sección E del informe. | `Codigo_proyecto_CA0309`, sección E; `Informe_proyecto_CA0309`, sección E. |
 | Estudiante D: César | | |
+
+\newpage
+
+# Anexos
+
+Detalle año a año de la trayectoria 4
+
+| Año | Saldo al inicio | Cargo (2 %) | Logrendimiento | Saldo al cierre | Permanencia al inicio | Factor de descuento | VP del cargo |
+|----:|----------------:|------------:|---------------:|----------------:|----------------------:|--------------------:|-------------:|
+| 1 | 100 000,00 | 2 000,00 | 0,0273 | 100 711,01 | 1,00000 | 1,00000 | 2 000,00 |
+| 2 | 100 711,01 | 2 014,22 | -0,0124 | 97 481,04 | 0,96682 | 0,96154 | 1 872,49 |
+| 3 | 97 481,04 | 1 949,62 | -0,0838 | 87 852,69 | 0,93463 | 0,92456 | 1 684,69 |
+| 4 | 87 852,69 | 1 757,05 | -0,0081 | 85 404,83 | 0,90336 | 0,88900 | 1 411,07 |
+| 5 | 85 404,83 | 1 708,10 | -0,2012 | 68 442,32 | 0,87299 | 0,85480 | 1 274,64 |
+
+: Cuenta, cargos y VP de los cargos de la trayectoria 4; la suma de los VP de los cargos es 8 242,89. {#tbl-anexo-cuenta}
