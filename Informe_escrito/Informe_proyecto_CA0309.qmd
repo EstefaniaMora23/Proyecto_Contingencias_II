@@ -242,6 +242,22 @@ El resultado económico y el efectivo no coinciden. El resultado $\Pi_t$ descuen
 
 # D. Escenario adverso y respaldo de las reservas
 
+En el escenario adverso el gasto anual es de 11 000 por contrato vigente y el rendimiento anual es del 4 %. Con estos datos se recalcularon los flujos, los resultados y los recursos, y se comparan con el escenario base en la @tbl-adverso.
+
+| Caso | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
+|:-----------|--------------:|---------:|--------------:|--------------:|--------------:|
+| Base | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
+| Adverso | -13 618,4683 | -0,6104 | -1 716,9944 | 3 808,2285 | -2 198,0176 |
+| Diferencia | -704,4991 | -0,0316 | -125,0152 | 756,8598 | -173,1683 |
+
+: Comparación entre el escenario base y el adverso (M = millones de unidades monetarias; la fila Diferencia es adverso menos base). {#tbl-adverso}
+
+El escenario adverso empeora los cuatro indicadores: el NPV pasa de -12 913,9692 M a -13 618,4683 M, el saldo mínimo antes de aportes de -1 591,9792 M a -1 716,9944 M, los aportes totales de 3 051,3687 M a 3 808,2285 M y el respaldo del año 1 de -2 024,8493 M a -2 198,0176 M. Tanto el gasto adicional como la reducción del rendimiento disminuyen los fondos acumulados antes de restar los beneficios esperados y la reserva de fin de año, luego como no se calcularon efectos separados, no se atribuye una parte del deterioro a cada parámetro.
+
+Los recursos no cubren la reserva suministrada en ninguno de los dos escenarios. Al cierre del año 1 y antes del aporte, los recursos son de 1 972,3134 M en el base y de 1 799,1450 M en el adverso, frente a una reserva de 3 997,1626 M, es decir, cubren el 49,34 % y el 45,01 % de la reserva, respectivamente. El faltante ya existe en el caso base, por lo que el escenario adverso solo lo empeora.
+
+Se recomienda aumentar la prima anual. En el año 1, el costo esperado de los fallecimientos, de 46 661,3602 por contrato, supera la prima neta de gasto y comisión, que es de 37 500,0000 en el base y de 36 500,0000 en el adverso. Para que los recursos igualen la reserva al cierre del año 1 en el escenario adverso, la prima anual debería ser de al menos 71 390,4540 por contrato (69 517,5625 en el base), un aumento de 42,78 % (39,04 %) respecto a 50 000. Con esa prima, los recursos también cubren la reserva en los años siguientes. Este nivel es un mínimo para cubrir la reserva y no garantiza un NPV positivo.
+
 # E. Equity-linked y rentabilidad estocástica
 
 ## Simulación y valoración del proveedor
