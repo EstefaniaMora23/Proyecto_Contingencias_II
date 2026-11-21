@@ -235,7 +235,17 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 | Estudiante A: Estefanía | Programación del código de la sección B de varias vidas y redacción de las secciones B y F del informe. | `Codigo_proyecto_CA0309`, sección B; `Informe_proyecto_CA0309`, secciones B y F. |
 | Estudiante B: Alexandra | Programación del código de la sección A: población, decrementos y multiestado. Redacción de la sección A en el informe.| `Codigo_proyecto_CA0309`, sección A; `Informe_proyecto_CA0309`, sección A.|
 | Estudiante C: Daniela | Programación del código de la sección E de equity-linked (simulación de la cuenta individual, valoración del proveedor y comparación de garantías) y redacción de la sección E del informe. | `Codigo_proyecto_CA0309`, sección E; `Informe_proyecto_CA0309`, sección E. |
-| Estudiante D: César | | |
+| Estudiante D: César |  |  |
+
+## Declaración de uso de IA y otras ayudas
+
+| Integrante | Herramienta y uso | Verificación |
+|:---|:---|:---|
+| Estefanía |  |  |
+| Alexandra |  |  |
+| César |  |  |
+| Daniela | 	Claude: apoyo en la corrección del código de la sección E, sugerencias para mejorar el histograma y orientación para exportar las tablas.| Se ejecutó el código completo y se comprobó que los valores obtenidos fueran consistentes con los resultados esperados y las verificaciones de la sección E. |
+
 
 \newpage
 
