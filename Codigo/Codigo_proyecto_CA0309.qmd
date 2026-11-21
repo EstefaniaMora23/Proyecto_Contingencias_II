@@ -1440,6 +1440,35 @@ exportar_csv(testing_adverso$fondos, "Seccion_D", "fondos_aportes_adverso_D")
 exportar_csv(cuadro_adverso, "Seccion_D", "cuadro_base_vs_adverso_D")
 ```
 
+### Extra Grupo 3
+
+```{r}
+testing_b_mayor <- profit_testing(
+  parametros_b_mayor,
+  datos_poblacion,
+  caso = "Beneficio mayor"
+)
+
+cuadro_extra <- bind_rows(testing_base$resumen, testing_b_mayor$resumen) %>%
+  comparacion_escenarios()
+
+cuadro_extra_md <- cuadro_extra %>%
+  transmute(
+    Caso = caso,
+    `VP beneficios (M)` = vp_beneficios / 1e6,
+    `NPV (M)` = npv / 1e6,
+    `Margen` = margen,
+    `Saldo mínimo (M)` = saldo_minimo / 1e6,
+    `Total aportes (M)` = total_aportes / 1e6,
+    `Respaldo año 1 (M)` = respaldo_anio1 / 1e6
+  )
+
+exportar_csv(testing_b_mayor$flujos, "Extra_G3", "flujos_anuales_b_mayor_G3")
+exportar_csv(testing_b_mayor$fondos, "Extra_G3", "fondos_aportes_b_mayor_G3")
+exportar_csv(cuadro_extra, "Extra_G3", "cuadro_base_vs_b_mayor_G3")
+```
+
+
 ## Sección E: Equity-linked y rentabilidad estocástica
 
 ### Parámetros de la cuenta individual
@@ -1709,30 +1738,3 @@ write.csv2(
 )
 ```
 
-## Extra Grupo 3
-
-```{r}
-testing_b_mayor <- profit_testing(
-  parametros_b_mayor,
-  datos_poblacion,
-  caso = "Beneficio mayor"
-)
-
-cuadro_extra <- bind_rows(testing_base$resumen, testing_b_mayor$resumen) %>%
-  comparacion_escenarios()
-
-cuadro_extra_md <- cuadro_extra %>%
-  transmute(
-    Caso = caso,
-    `VP beneficios (M)` = vp_beneficios / 1e6,
-    `NPV (M)` = npv / 1e6,
-    `Margen` = margen,
-    `Saldo mínimo (M)` = saldo_minimo / 1e6,
-    `Total aportes (M)` = total_aportes / 1e6,
-    `Respaldo año 1 (M)` = respaldo_anio1 / 1e6
-  )
-
-exportar_csv(testing_b_mayor$flujos, "Extra_G3", "flujos_anuales_b_mayor_G3")
-exportar_csv(testing_b_mayor$fondos, "Extra_G3", "fondos_aportes_b_mayor_G3")
-exportar_csv(cuadro_extra, "Extra_G3", "cuadro_base_vs_b_mayor_G3")
-```
