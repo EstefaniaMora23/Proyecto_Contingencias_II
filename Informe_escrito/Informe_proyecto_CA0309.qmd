@@ -291,7 +291,7 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 | Estudiante A: Estefanía | Programación del código de la sección B de varias vidas y redacción de las secciones B y F del informe. | `Codigo_proyecto_CA0309`, sección B; `Informe_proyecto_CA0309`, secciones B y F. |
 | Estudiante B: Alexandra | Programación del código de la sección A: población, decrementos y multiestado. Redacción de la sección A en el informe.| `Codigo_proyecto_CA0309`, sección A; `Informe_proyecto_CA0309`, sección A.|
 | Estudiante C: Daniela | Programación del código de la sección E de equity-linked (simulación de la cuenta individual, valoración del proveedor y comparación de garantías) y redacción de la sección E del informe. | `Codigo_proyecto_CA0309`, sección E; `Informe_proyecto_CA0309`, sección E. |
-| Estudiante D: César |  |  |
+| Estudiante D: César | Programación del código de las secciones C, D  y extra grupo 3 sobre profit-testing y redacción de las secciones C, D y parte extra del informe.  | `Codigo_proyecto_CA0309`, sección C, D y extra; `Informe_proyecto_CA0309`, sección C, D y extra. |
 
 ## Declaración de uso de IA y otras ayudas
 
@@ -299,7 +299,7 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 |:---|:---|:---|
 | Estefanía |  |  |
 | Alexandra |  |  |
-| César |  |  |
+| César | Claude: corrección y optimización del código escrito en R de las secciones C y D, verificación numérica de cálculos realizados, corrección de ortografía y mejora de redacción en el informe, verificación de la completitud de las secciones C y D frente al enunciado, para identificar incisos o elementos solicitados que faltaban. | Se verificaron las respuestas de la IA con los contenidos vistos en clase y con la información del capítulo 12 del libro de Dickson. |
 | Daniela | 	Claude: apoyo en la corrección del código de la sección E, sugerencias para mejorar el histograma y orientación para exportar las tablas.| Se ejecutó el código completo y se comprobó que los valores obtenidos fueran consistentes con los resultados esperados y las verificaciones de la sección E. |
 
 
