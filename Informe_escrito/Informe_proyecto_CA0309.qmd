@@ -29,13 +29,13 @@ format:
 
 \newpage
 
-El objetivo del presente informe radica en presentar los principales resultados obtenidos a partir tanto de las proyecciones como de las estimaciones ejecutadas en el archivo `Codigo_proyecto_CA0309.qmd`. En caso de que se requiera efectuar consultas a mayor profundidad sobre los datos extendidos, es preciso dirigirse al recurso mencionado y revisar el apartado denominado de la misma manera que la sección en la que está contenida la información a consultar. Asimismo, es importante destacar que la división de los resultados responde a las secciones establecidas en las indicaciones del proyecto: A. Población, decrementos y multiestado; B. Varias vidas; C. Flujos, reservas suministradas y profit testing; D. Escenario adverso y respaldo de las reservas; E. Equity-linked y rentabilidad estocástica y F. Interpretación conceptual de NIIF 17. 
+El objetivo del presente informe radica en presentar los principales resultados obtenidos a partir tanto de las proyecciones como de las estimaciones ejecutadas en el archivo `Codigo_proyecto_CA0309.qmd`. En caso de que se requiera efectuar consultas a mayor profundidad sobre los datos extendidos, es preciso dirigirse al recurso mencionado y revisar el apartado denominado de la misma manera que la sección en la que está contenida la información a consultar. Asimismo, es importante destacar que la división de los resultados responde a las secciones establecidas en las indicaciones del proyecto: A. Población, decrementos y multiestado; B. Varias vidas; C. Flujos, reservas suministradas y profit testing; D. Escenario adverso y respaldo de las reservas; E. Equity-linked y rentabilidad estocástica y F. Interpretación conceptual de NIIF 17.
 
 # A. Población, decrementos y multiestado
 
 En primer lugar, con el objetivo de construir la base de proyección del proyecto se partió de la población activa registrada, a la cual se le aplicó diversos filtros de acuerdo a las especificaciones extendidas. De esta forma, se obtuvo la población activa resultante, cuyo resumen estadístico por sexo se presenta en el Anexo A.
 
-Es preciso mencionar que la población resultante refleja la exclusión acumulativa de un total de 136 registros sin una fecha de nacimiento válida y un único registro sin un sexo válido, las demás condiciones de exclusión también fueron verificadas, no obstante, no se encontraron registros por excluir. Lo anterior puede responder a dos situaciones: la ausencia de entradas que incumplan las condiciones establecidas o la exclusión previa de dichas entradas tras evaluar otras condiciones. Por otro lado, la población inicial utilizada tiene un valor de $N_{0} = 104005$, número que coincide con la suma de la población total registrada por sexo. Seguidamente, se presenta la distribución anual de la población por causa, obtenida tras efectuar la proyección por un plazo de cinco años. 
+Es preciso mencionar que la población resultante refleja la exclusión acumulativa de un total de 136 registros sin una fecha de nacimiento válida y un único registro sin un sexo válido, las demás condiciones de exclusión también fueron verificadas, no obstante, no se encontraron registros por excluir. Lo anterior puede responder a dos situaciones: la ausencia de entradas que incumplan las condiciones establecidas o la exclusión previa de dichas entradas tras evaluar otras condiciones. Por otro lado, la población inicial utilizada tiene un valor de $N_{0} = 104005$, número que coincide con la suma de la población total registrada por sexo. Seguidamente, se presenta la distribución anual de la población por causa, obtenida tras efectuar la proyección por un plazo de cinco años.
 
 \begin{longtable}{|c|c|c|c|c|c|}
 \caption{Distribución anual de la población por causa} \\
@@ -63,7 +63,7 @@ Es preciso mencionar que la población resultante refleja la exclusión acumulat
 
 \end{longtable}
 
-En el archivo `Codigo_proyecto_CA0309.qmd` se verificó que la población inicial de cada año coincidiera con la suma de los fallecimientos anuales, las renuncias anuales y la población final, admitiendo una pequeña tolerancia debido a la limitación decimal de la computadora. Asimismo, es posible notar en la tabla que la población inicial de todos los años exceptuando al 2026, coincide con la población final del año anterior, de manera que se guarda la coherencia en los cálculos. En lo que concierne a las matrices de transición, se verificó en el mismo archivo que las probabilidades en sus filas sumaran una unidad, admitiendo una pequeña tolerancia. 
+En el archivo `Codigo_proyecto_CA0309.qmd` se verificó que la población inicial de cada año coincidiera con la suma de los fallecimientos anuales, las renuncias anuales y la población final, admitiendo una pequeña tolerancia debido a la limitación decimal de la computadora. Asimismo, es posible notar en la tabla que la población inicial de todos los años exceptuando al 2026, coincide con la población final del año anterior, de manera que se guarda la coherencia en los cálculos. En lo que concierne a las matrices de transición, se verificó en el mismo archivo que las probabilidades en sus filas sumaran una unidad, admitiendo una pequeña tolerancia.
 
 # B. Varias vidas
 
@@ -126,14 +126,12 @@ Los resultados se basan en parejas hipotéticas, diferencias de edad fijadas por
 
 Se proyectaron durante cinco años las primas, los gastos, las comisiones y los beneficios por fallecimiento de la cartera, a partir de los activos y los fallecimientos esperados de A. Las primas, los gastos y las comisiones se pagan al inicio de cada año y dependen de los contratos vigentes en ese momento, además los beneficios se pagan al cierre y dependen de los fallecimientos esperados del año. Se utilizaron las reservas suministradas por contrato vigente al cierre (40 000, 35 000, 25 000, 15 000 y 0), de modo que la reserva total es ese importe multiplicado por los activos al cierre.
 
-  
-
 El resultado anual de la cartera, $\Pi_t$, se calculó con el esquema de *profit testing*.
 
 \begingroup\small
 
 | Año | Activos al inicio | Fallecimientos esperados | Primas (M) | Gastos y comisiones (M) | Beneficios (M) | Reserva final (M) | Resultado (M) |
-|:-----|---------------:|--------------:|-----------:|------------:|-----------:|-----------:|------------:|
+|:--------|--------:|--------:|--------:|--------:|--------:|--------:|--------:|
 | 2026 | 104 005,0000 | 970,6030 | 5 200,2500 | 1 300,0625 | 4 853,0148 | 3 997,1626 | -4 754,9805 |
 | 2027 | 99 929,0658 | 983,8246 | 4 996,4533 | 1 249,1133 | 4 919,1231 | 3 358,6839 | -146,0792 |
 | 2028 | 95 962,3959 | 995,4554 | 4 798,1198 | 1 199,5299 | 4 977,2768 | 2 302,5820 | 25,2787 |
@@ -148,7 +146,7 @@ El resultado es negativo en los años 1, 2, 4 y 5, y solo el año 3 muestra una 
 
 ## Desglose del año 1
 
-Al inicio del año 1 se emiten 104 005 contratos. Cada uno paga una prima de 50 000, y se pagan 10 000 de gasto y 2 500 de comisión (5 % de la prima), de modo que quedan 37 500 por contrato. Luego se tienen 3 900,2 M en la cartera (primas de 5 200,3 M menos costos de 1 300,1 M). Como la reserva inicial es cero, no hay recursos liberados de reserva. Esos 3 900,2 M generan el rendimiento del 5 % y llegan a 4 095,2 M al cierre. De ese monto se restan los beneficios esperados de 4 853 M y la reserva final de 3 997,2 M. El resultado es $\Pi_1=-4\,754{,}9805$ M. El desglose completo, con los montos en unidades monetarias, se presenta en la @tbl-desglose-anio1 (Anexo C). 
+Al inicio del año 1 se emiten 104 005 contratos. Cada uno paga una prima de 50 000, y se pagan 10 000 de gasto y 2 500 de comisión (5 % de la prima), de modo que quedan 37 500 por contrato. Luego se tienen 3 900,2 M en la cartera (primas de 5 200,3 M menos costos de 1 300,1 M). Como la reserva inicial es cero, no hay recursos liberados de reserva. Esos 3 900,2 M generan el rendimiento del 5 % y llegan a 4 095,2 M al cierre. De ese monto se restan los beneficios esperados de 4 853 M y la reserva final de 3 997,2 M. El resultado es $\Pi_1=-4\,754{,}9805$ M. El desglose completo, con los montos en unidades monetarias, se presenta en la @tbl-desglose-anio1 (Anexo C).
 
 ## Recursos y aportes
 
@@ -197,9 +195,9 @@ No se simularon fallecimientos ni renuncias individuales, por lo que la frecuenc
 La siguiente tabla compara las dos garantías desde la perspectiva del proveedor:
 
 | Garantía | Probabilidad de activación | VP medio del complemento | NPV medio | Frecuencia de pérdida | CTE95 |
-|---------:|--------------------:|--------------------:|-----------:|------------------:|---------------:|
-| 100 000  | 36,7 %                     | 5 126,70                 | 4 054,40  | 24,6 %                | 22 959,79 |
-| 110 000  | 48,5 %                     | 8 087,64                 | 1 093,46  | 33,9 %                | 29 892,45 |
+|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|
+| 100 000 | 36,7 % | 5 126,70 | 4 054,40 | 24,6 % | 22 959,79 |
+| 110 000 | 48,5 % | 8 087,64 | 1 093,46 | 33,9 % | 29 892,45 |
 
 : Comparación de las garantías de 100 000 y 110 000 desde la perspectiva del proveedor. {#tbl-garantias}
 
@@ -213,10 +211,10 @@ La @fig-hist-npv muestra el NPV del proveedor con los mismos cortes y escalas en
 
 Se detalla la trayectoria 4, la primera en que se activa la garantía de 100 000. La cuenta cerró el año 5 con un saldo de 68 442,32, inferior a ambas garantías, por lo que el complemento fue de 31 557,68 con la garantía de 100 000 y de 41 557,68 con la de 110 000. El VP de los cargos, 8 242,89, es el mismo en ambos casos porque la cuenta y los cargos no dependen de la garantía.
 
-| Garantía | Saldo final | Complemento | VP del complemento | VP de los cargos | NPV        |
-|---------:|------------:|------------:|-------------------:|-----------------:|-----------:|
-| 100 000  | 68 442,32   | 31 557,68   | 21 877,86          | 8 242,89         | -13 634,97 |
-| 110 000  | 68 442,32   | 41 557,68   | 28 810,52          | 8 242,89         | -20 567,63 |
+| Garantía | Saldo final | Complemento | VP del complemento | VP de los cargos | NPV |
+|-----------:|-----------:|-----------:|-----------:|-----------:|-----------:|
+| 100 000 | 68 442,32 | 31 557,68 | 21 877,86 | 8 242,89 | -13 634,97 |
+| 110 000 | 68 442,32 | 41 557,68 | 28 810,52 | 8 242,89 | -20 567,63 |
 
 : Detalle de la trayectoria 4 bajo ambas garantías. {#tbl-trayectoria}
 
@@ -273,24 +271,24 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 \begingroup\small
 
 | Integrante | Tarea técnica | Función o bloque de código | Resultado | Verificación |
-|:---|:---|:---|:---|:---|
+|:--------------|:--------------|:--------------|:--------------|:--------------|
 | Estefanía | Sección B (varias vidas); redacción de B y F | Bloques de B ("Clasificación de activos y asignación de parejas hipotéticas" a "Verificaciones de la sección B"); función `obtener_q_B` | 97 250 parejas admisibles; VP de 407 052,39, 431 037,26 y 11 556,52 | Parejas admisibles = total de cohortes; probabilidades de los cuatro estados suman uno |
 | Alexandra | Sección A (población, decrementos y multiestado); redacción de A | Bloques de A ("Construcción de la base de la proyección" a "Construcción de la distribución anual de la población por causa"); función `verificar_suma_filas_P` | N0 = 104 005 | N0 = suma por edad y sexo; filas de las matrices suman uno; población inicial = salidas + población final |
 | Daniela | Sección E (equity-linked); integración del informe y anexos; ficha del foro | Bloques de E ("Simulación de las trayectorias de la cuenta" a "Verificaciones de la sección E"); función `cte95` | Cuadro de garantías (@tbl-garantias) y trayectoria 4 | Garantía mayor no baja el complemento ni sube el NPV en las 1 000 trayectorias; diferencia del CTE95 = 10 000 × factor |
 | César | Secciones C, D y cálculo adicional del grupo 3 | Funciones `profit_testing`, `respaldo_por_anio`, `prima_minima`, `comparacion_escenarios`; bloques de C, D y "Extra Grupo 3" | NPV base -12 913,9692 M; margen -0,5788; respaldo año 1 -2 024,8493 M | Recomputo del desglose del año 1; el VP de beneficios sube exactamente 10 % |
-: {tbl-colwidths="[11,19,30,20,20]"}
+
+: {tbl-colwidths="\[11,19,30,20,20\]"}
 
 ## Declaración de uso de IA y otras ayudas
 
 | Integrante | Herramienta y uso | Verificación |
-|:---|:---|:---|
-| Estefanía | [completar] | [completar] |
-| Alexandra | [completar] | [completar] |
+|:-----------------------|:-----------------------|:-----------------------|
+| Estefanía | ChatGPT: redacción y ortografía de las secciones B y F, revisión del código de estas secciones y ayuda en exportar las tablas en .csv. | Al final del código de la sección B se ejecutó una breve verificación de los puntos importantes. Toda la información se contrastó con el Bowers para varias vidas. |
+| Alexandra | \[completar\] | \[completar\] |
 | César | Claude: corrección y optimización del código R de C y D, verificación numérica, ortografía y redacción del informe, y revisión de la completitud de C y D frente al enunciado. | Contraste con lo visto en clase y con el capítulo 12 de Dickson. |
 | Daniela | Claude: corrección del código de E, sugerencias para el histograma y orientación para exportar las tablas. | Se ejecutó el código completo y se comprobó la consistencia con los resultados y las verificaciones de E. |
 
 \endgroup
-
 
 \newpage
 
@@ -328,19 +326,19 @@ Edad con la mayor cantidad de registros & 40 & 40\\ \hline
 
 ## Anexo C. Detalle de los cálculos de la sección C
 
-| Concepto | Monto |
-|:---|---:|
-| Reserva inicial total | 0,0000 |
-| Primas netas de gasto y comisión | 3 900 187 500,0000 |
-| Fondos acumulados al cierre, con rendimiento | 4 095 196 875,0000 |
-| Beneficios por fallecimiento | 4 853 014 765,4822 |
-| Reserva final total | 3 997 162 633,4776 |
-| Resultado de cartera | -4 754 980 523,9598 |
+| Concepto                                     |               Monto |
+|:---------------------------------------------|--------------------:|
+| Reserva inicial total                        |              0,0000 |
+| Primas netas de gasto y comisión             |  3 900 187 500,0000 |
+| Fondos acumulados al cierre, con rendimiento |  4 095 196 875,0000 |
+| Beneficios por fallecimiento                 |  4 853 014 765,4822 |
+| Reserva final total                          |  3 997 162 633,4776 |
+| Resultado de cartera                         | -4 754 980 523,9598 |
 
 : Desglose del cálculo del año 1 (unidades monetarias). {#tbl-desglose-anio1}
 
 | Año | Periodo | Recursos al inicio (M) | Saldo antes de aporte (M) | Aporte (M) | Recursos después del aporte (M) |
-|:-----|:--------|--------------:|---------------:|-----------:|----------------:|
+|:-----------|:-----------|-----------:|-----------:|-----------:|-----------:|
 | 2026 | 1 | 2 600,1250 | 1 972,3134 | 0,0000 | 1 972,3134 |
 | 2027 | 2 | 1 972,3134 | 1 086,5129 | 0,0000 | 1 086,5129 |
 | 2028 | 3 | 1 086,5129 | -57,9189 | 57,9189 | 0,0000 |
@@ -352,7 +350,7 @@ Edad con la mayor cantidad de registros & 40 & 40\\ \hline
 ## Anexo D. Escenario adverso y aumento del beneficio
 
 | Caso | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
-|:-----------|--------------:|---------:|--------------:|--------------:|--------------:|
+|:-----------|-----------:|-----------:|-----------:|-----------:|-----------:|
 | Base | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
 | Adverso | -13 618,4683 | -0,6104 | -1 716,9944 | 3 808,2285 | -2 198,0176 |
 | Diferencia | -704,4991 | -0,0316 | -125,0152 | 756,8598 | -173,1683 |
@@ -360,7 +358,7 @@ Edad con la mayor cantidad de registros & 40 & 40\\ \hline
 : Comparación entre el escenario base y el adverso (M = millones de unidades monetarias; la fila Diferencia es adverso menos base). {#tbl-adverso}
 
 | Caso | VP beneficios (M) | NPV (M) | Margen | Saldo mínimo (M) | Total aportes (M) | Respaldo año 1 (M) |
-|:-----------|-------------:|--------------:|---------:|-------------:|-------------:|-------------:|
+|:----------|----------:|----------:|----------:|----------:|----------:|----------:|
 | Base | 22 104,9280 | -12 913,9692 | -0,5788 | -1 591,9792 | 3 051,3687 | -2 024,8493 |
 | Beneficio mayor | 24 315,4208 | -15 124,4620 | -0,6779 | -2 099,0550 | 5 610,5287 | -2 510,1508 |
 | Diferencia | 2 210,4928 | -2 210,4928 | -0,0991 | -507,0758 | 2 559,1600 | -485,3015 |
@@ -372,7 +370,7 @@ Edad con la mayor cantidad de registros & 40 & 40\\ \hline
 Detalle año a año de la trayectoria 4
 
 | Año | Saldo al inicio | Cargo (2 %) | Logrendimiento | Saldo al cierre | Permanencia al inicio | Factor de descuento | VP del cargo |
-|----:|----------------:|------------:|---------------:|----------------:|----------------------:|--------------------:|-------------:|
+|--------:|--------:|--------:|--------:|--------:|--------:|--------:|--------:|
 | 1 | 100 000,00 | 2 000,00 | 0,0273 | 100 711,01 | 1,00000 | 1,00000 | 2 000,00 |
 | 2 | 100 711,01 | 2 014,22 | -0,0124 | 97 481,04 | 0,96682 | 0,96154 | 1 872,49 |
 | 3 | 97 481,04 | 1 949,62 | -0,0838 | 87 852,69 | 0,93463 | 0,92456 | 1 684,69 |
