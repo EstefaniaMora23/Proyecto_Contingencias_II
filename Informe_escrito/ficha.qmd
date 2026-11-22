@@ -1,0 +1,42 @@
+---
+format:
+  pdf:
+    papersize: letter
+    documentclass: article
+    lang: es-CR
+    fontsize: 10pt
+    mainfont: Times New Roman
+    geometry: "margin=1.8cm"
+    pagestyle: empty
+    header-includes:
+      - \usepackage{booktabs}
+      - \usepackage{array}
+      - \setlength{\parindent}{0cm}
+---
+
+**Ficha del foro, Ronda 2 | Grupo 3 (Equipo Actuarial) | CA-0309 Contingencia de Vida II**
+
+Tema: aumento del beneficio por fallecimiento de 5 000 000 a 5 500 000, manteniendo la prima anual de 50 000 y los demás parámetros del caso base. M = millones de unidades monetarias.
+
+| Indicador | Beneficio 5 000 000 | Beneficio 5 500 000 | Diferencia |
+|:---|---:|---:|---:|
+| VP de beneficios (M) | 22 104,9280 | 24 315,4208 | 2 210,4928 |
+| NPV (M) | -12 913,9692 | -15 124,4620 | -2 210,4928 |
+| Margen sobre primas descontadas | -0,5788 | -0,6779 | -0,0991 |
+| Saldo mínimo antes de aportes (M) | -1 591,9792 | -2 099,0550 | -507,0758 |
+| Total de aportes (M) | 3 051,3687 | 5 610,5287 | 2 559,1600 |
+| Respaldo año 1 (M) | -2 024,8493 | -2 510,1508 | -485,3015 |
+
+**Decisión:** se recomienda posponer el aumento del beneficio mientras la prima anual se mantenga en 50 000. Como los fallecimientos esperados de A no cambian, el valor presente de los beneficios aumenta exactamente un 10 %. Además, el NPV del caso base ya es negativo y con el aumento la situación empeora. El primer aporte se realiza en el año 3 en ambos escenarios, pero pasa de 57,9189 M a 1 607,1994 M. Por otra parte, los recursos disponibles antes del aporte cubren el 37,20 % de la reserva al cierre del año 1, mientras que en el caso base cubren el 49,34 %.
+
+**Condición:** valorar nuevamente el aumento cuando el esquema con beneficio de 5 500 000 presente un NPV igual o superior a cero, utilizando los fallecimientos esperados de A. Como el aumento reduce el NPV en 2 210,4928 M, esto exige que el caso base tenga un NPV de al menos 2 210,4928 M; por el momento es de -12 913,9692 M.
+
+**Indicador de seguimiento:** se utilizará el respaldo del año 1, calculado como la diferencia entre los recursos disponibles antes del aporte y la reserva al cierre de ese año. Actualmente, este indicador es de -2 024,8493 M para el caso base y de -2 510,1508 M para el escenario con el beneficio aumentado.
+
+**Operación verificable (año 1, beneficio mayor):** se parte de $N_0 = 104\,005$ contratos. Los recursos iniciales son $(100\,000 - 75\,000)\times 104\,005 = 2\,600{,}125$ M. Las primas netas de gastos y comisiones son $37\,500 \times 104\,005 = 3\,900{,}1875$ M. Los beneficios esperados por fallecimiento son $970{,}6030 \times 5\,500\,000 \approx 5\,338{,}3162$ M.
+
+Con estos valores, los recursos antes del aporte al cierre del año son $(2\,600{,}125 + 3\,900{,}1875)(1{,}05) - 5\,338{,}3162 \approx 1\,487{,}0119$ M. La reserva suministrada a ese cierre es $40\,000 \times 99\,929{,}0658 = 3\,997{,}1626$ M. Finalmente, el respaldo es $1\,487{,}0119 - 3\,997{,}1626 \approx -2\,510{,}1508$ M.
+
+**Seguro de fallecimiento frente al pago al cónyuge sobreviviente (B):** el seguro de C contempla un pago de 5 000 000 cuando fallece el activo, mientras que la renuncia pone fin a la cobertura. En cambio, la renta para el cónyuge sobreviviente consiste en un pago de una unidad al cierre de cada año en que el activo ya falleció y el cónyuge continúa con vida. Por lo tanto, puede generar varios pagos a lo largo del tiempo. Esta renta se valoró sin considerar la renuncia y obtuvo un VP agregado de 11 556,52 (0,118833 por pareja inicial), en comparación con 407 052,39 para vida conjunta y 431 037,26 para último sobreviviente. Es importante señalar que se trata de coberturas alternativas y no de beneficios que deban sumarse al seguro de C.
+
+**Limitaciones:** los parámetros y las reservas utilizados corresponden a los supuestos del ejercicio y no a datos observados. Además, se trabaja con parejas hipotéticas de sexo opuesto desde los 30 años, con una diferencia de edad fija, vidas independientes y 6 755 activos sin pareja, para un total de 97 250 parejas admisibles. Por esta razón, los resultados deben interpretarse como una comparación dentro del ejercicio y no como una medida de suficiencia actuarial o de solvencia regulatoria.
