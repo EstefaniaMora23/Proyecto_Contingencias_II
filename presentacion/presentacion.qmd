@@ -82,7 +82,46 @@ format:
               Daniela Prado Vargas\par}}
 ---
 
-## Prueba de diapositiva
+## Comparación del beneficio: 5 M frente a 5.5 M
 
-- Primer punto
-- Segundo punto
+\footnotesize
+
+| Indicador | Beneficio 5.000.000 | Beneficio 5.500.000 | Diferencia |
+|:----------------------------|---------:|---------:|---------:|
+| VP de beneficios (M) | 22 104,9280 | 24 315,4208 | 2 210,4928 |
+| NPV (M) | -12 913,9692 | -15 124,4620 | -2 210,4928 |
+| Margen | -0,5788 | -0,6779 | -0,0991 |
+| Saldo mínimo antes de aportes (M) | -1 591,9792 | -2 099,0550 | -507,0758 |
+| Total de aportes (M) | 3 051,3687 | 5 610,5287 | 2 559,1600 |
+| Respaldo año 1 (M) | -2 024,8493 | -2 510,1508 | -485,3015 |
+
+\normalsize
+
+M = millones de unidades monetarias. El NPV baja exactamente lo que sube el VP de beneficios.
+
+## ¿Es defendible con la prima de 50 000?
+
+\footnotesize
+
+| Indicador | Base | Mayor |
+|:-----------------------------------------|----------:|----------:|
+| Económico: NPV (M) | -12 913,9692 | -15 124,4620 |
+| Efectivo: primer aporte, año 3 (M) | 57,9189 | 1 607,1994 |
+| Efectivo: total de aportes (M) | 3 051,3687 | 5 610,5287 |
+| Respaldo: recursos / reserva al cierre del año 1 | 49,34 % | 37,20 % |
+| Costo esperado de fallecimientos por contrato, año 1 | 46 661,3602 | 51 327,4962 |
+
+\normalsize
+
+- La prima neta de gasto y comisión (37 500 por contrato) no cubre el costo esperado ni en el caso base; con el beneficio mayor, el costo supera incluso la prima completa de 50 000.
+- Las tres medidas (NPV, aportes y respaldo) son distintas y las tres empeoran.
+
+## Decisión: posponer el aumento
+
+\small
+
+- **Decisión.** Posponer el aumento mientras la prima siga en 50 000.
+- **Condición.** Reconsiderarlo cuando el esquema con beneficio de 5 500 000 tenga un NPV no negativo. El aumento resta $2\,210{,}4928$ M, así que el caso base necesitaría un NPV de al menos esa cifra; hoy es de $-12\,913{,}9692$ M.
+- **Indicador de seguimiento.** Respaldo del año 1: $-2\,024{,}8493$ M en el base y $-2\,510{,}1508$ M con el aumento.
+- **Operación verificable.** Año 1, beneficio mayor: recursos antes del aporte menos reserva $\approx 1\,487{,}0119 - 3\,997{,}1626 = -2\,510{,}1508$ M.
+- **Limitación.** Los supuestos y las reservas son los del ejercicio: es una comparación, no una medida de suficiencia actuarial ni de solvencia regulatoria.

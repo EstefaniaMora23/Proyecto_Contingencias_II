@@ -1,5 +1,4 @@
 % Options for packages loaded elsewhere
-% Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
 %
@@ -7,51 +6,31 @@
   11pt,
   ignorenonframetext,
   aspectratio=169,
-  spanish,
 ]{beamer}
-\newif\ifbibliography
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
 \setbeamertemplate{caption label separator}{: }
 \setbeamercolor{caption name}{fg=normal text.fg}
 \beamertemplatenavigationsymbolsempty
-% remove section numbering
-\setbeamertemplate{part page}{
-  \centering
-  \begin{beamercolorbox}[sep=16pt,center]{part title}
-    \usebeamerfont{part title}\insertpart\par
-  \end{beamercolorbox}
-}
-\setbeamertemplate{section page}{
-  \centering
-  \begin{beamercolorbox}[sep=12pt,center]{section title}
-    \usebeamerfont{section title}\insertsection\par
-  \end{beamercolorbox}
-}
-\setbeamertemplate{subsection page}{
-  \centering
-  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
-    \usebeamerfont{subsection title}\insertsubsection\par
-  \end{beamercolorbox}
-}
 % Prevent slide breaks in the middle of a paragraph
 \widowpenalties 1 10000
 \raggedbottom
+
+\usepackage{amsmath,amssymb}
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
 \else % if luatex or xetex
-  \usepackage{unicode-math} % this also loads fontspec
+  \usepackage{unicode-math}
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
 \fi
 \usepackage{lmodern}
-
-\usefonttheme[]{serif}
-\ifPDFTeX\else
-  % xetex/luatex font selection
+\usefonttheme{serif}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -69,10 +48,14 @@
 }{% if KOMA class
   \KOMAoptions{parskip=half}}
 \makeatother
+\usepackage{xcolor}
+\newif\ifbibliography
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 
 
-\usepackage{longtable,booktabs,array}
-\newcounter{none} % for unnumbered tables
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
 \usepackage{calc} % for calculating minipage widths
 \usepackage{caption}
 % Make caption package work with longtable
@@ -81,41 +64,17 @@
 \makeatother
 \usepackage{graphicx}
 \makeatletter
-\newsavebox\pandoc@box
-\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
-  \sbox\pandoc@box{#1}%
-  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
-  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
-  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
-  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
-  \else\usebox{\pandoc@box}%
-  \fi%
-}
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 % Set default figure placement to htbp
+\makeatletter
 \def\fps@figure{htbp}
 \makeatother
-
-
-
-\ifLuaTeX
-\usepackage[bidi=basic,shorthands=off]{babel}
-\else
-\usepackage[bidi=default,shorthands=off]{babel}
-\fi
-\ifLuaTeX
-  \usepackage{selnolig} % disable illegal ligatures
-\fi
-
-
-\setlength{\emergencystretch}{3em} % prevent overfull lines
-
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-
-
-
- 
-
 
 \usepackage{tikz}
 \usetikzlibrary{calc}
@@ -223,38 +182,144 @@
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
 
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{spanish}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
 \usepackage{bookmark}
+
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same}
+\urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
   pdftitle={Aumento del beneficio por fallecimiento en un seguro colectivo},
-  pdfauthor={Alexandra González Bermúdez; Emily Estefanía Mora Contreras; César Salazar; Daniela Prado Vargas},
+  pdfauthor={Alexandra González Bermúdez; Emily Estefanía Mora Contreras; César Salazar Amaya; Daniela Prado Vargas},
   pdflang={es},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 
 
-\title{\texorpdfstring{Aumento del beneficio por fallecimiento en un
-seguro
-colectivo}{Aumento del beneficio por fallecimiento en un seguro colectivo}}
-\subtitle{\texorpdfstring{NPV, efectivo y respaldo de las
-reservas}{NPV, efectivo y respaldo de las reservas}}
+\title{Aumento del beneficio por fallecimiento en un seguro colectivo}
+\subtitle{NPV, efectivo y respaldo de las reservas}
 \author{Alexandra González Bermúdez \and Emily Estefanía Mora
-Contreras \and César Salazar \and Daniela Prado Vargas}
+Contreras \and César Salazar Amaya \and Daniela Prado Vargas}
 \date{}
 
 \begin{document}
 \frame{\titlepage}
 
 
-\begin{frame}{Prueba de diapositiva}
-\protect\phantomsection\label{prueba-de-diapositiva}
+\begin{frame}{Comparación del beneficio: 5 M frente a 5.5 M}
+\phantomsection\label{comparaciuxf3n-del-beneficio-5-m-frente-a-5.5-m}
+\footnotesize
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.4915}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1695}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1695}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1695}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Indicador
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Beneficio 5.000.000
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Beneficio 5.500.000
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Diferencia
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+VP de beneficios (M) & 22 104,9280 & 24 315,4208 & 2 210,4928 \\
+NPV (M) & -12 913,9692 & -15 124,4620 & -2 210,4928 \\
+Margen & -0,5788 & -0,6779 & -0,0991 \\
+Saldo mínimo antes de aportes (M) & -1 591,9792 & -2 099,0550 &
+-507,0758 \\
+Total de aportes (M) & 3 051,3687 & 5 610,5287 & 2 559,1600 \\
+Respaldo año 1 (M) & -2 024,8493 & -2 510,1508 & -485,3015 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\normalsize
+
+M = millones de unidades monetarias. El NPV baja exactamente lo que sube
+el VP de beneficios.
+\end{frame}
+
+\begin{frame}{¿Es defendible con la prima de 50 000?}
+\phantomsection\label{es-defendible-con-la-prima-de-50-000}
+\footnotesize
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6562}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.1719}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.1719}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Indicador
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Base
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Mayor
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+Económico: NPV (M) & -12 913,9692 & -15 124,4620 \\
+Efectivo: primer aporte, año 3 (M) & 57,9189 & 1 607,1994 \\
+Efectivo: total de aportes (M) & 3 051,3687 & 5 610,5287 \\
+Respaldo: recursos / reserva al cierre del año 1 & 49,34 \% & 37,20
+\% \\
+Costo esperado de fallecimientos por contrato, año 1 & 46 661,3602 & 51
+327,4962 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\normalsize
+
 \begin{itemize}
 \tightlist
 \item
-  Primer punto
+  La prima neta de gasto y comisión (37 500 por contrato) no cubre el
+  costo esperado ni en el caso base; con el beneficio mayor, el costo
+  supera incluso la prima completa de 50 000.
 \item
-  Segundo punto
+  Las tres medidas (NPV, aportes y respaldo) son distintas y las tres
+  empeoran.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Decisión: posponer el aumento}
+\phantomsection\label{decisiuxf3n-posponer-el-aumento}
+\small
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Decisión.} Posponer el aumento mientras la prima siga en 50
+  000.
+\item
+  \textbf{Condición.} Reconsiderarlo cuando el esquema con beneficio de
+  5 500 000 tenga un NPV no negativo. El aumento resta \(2\,210{,}4928\)
+  M, así que el caso base necesitaría un NPV de al menos esa cifra; hoy
+  es de \(-12\,913{,}9692\) M.
+\item
+  \textbf{Indicador de seguimiento.} Respaldo del año 1:
+  \(-2\,024{,}8493\) M en el base y \(-2\,510{,}1508\) M con el aumento.
+\item
+  \textbf{Operación verificable.} Año 1, beneficio mayor: recursos antes
+  del aporte menos reserva
+  \(\approx 1\,487{,}0119 - 3\,997{,}1626 = -2\,510{,}1508\) M.
+\item
+  \textbf{Limitación.} Los supuestos y las reservas son los del
+  ejercicio: es una comparación, no una medida de suficiencia actuarial
+  ni de solvencia regulatoria.
 \end{itemize}
 \end{frame}
 
