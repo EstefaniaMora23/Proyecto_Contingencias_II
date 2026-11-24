@@ -6,11 +6,11 @@ editor: visual
 
 # Instrucciones de ejecución
 
-1. Software: R 4.5.1. La simulación de la sección E usa `set.seed(2026)`; otra versión de R o de lenguaje puede producir una muestra distinta.
-2. Paquetes: `readxl`, `here`, `dplyr`, `expm`, `knitr`, `ggplot2`.
-3. Estructura: el proyecto se entrega como un `.zip` con las carpetas necesarias para ejecutar el código:
+1.  Software: R 4.5.1. La simulación de la sección E usa `set.seed(2026)`; otra versión de R o de lenguaje puede producir una muestra distinta.
+2.  Paquetes: `readxl`, `here`, `dplyr`, `expm`, `knitr`, `ggplot2`.
+3.  Estructura: el proyecto se entrega como un `.zip` con las carpetas necesarias para ejecutar el código:
 
-```
+```         
 Proyecto_Contingencias_II/
 ├── Base_datos/
 │   ├── Población_CA-0309.xlsx
@@ -19,9 +19,8 @@ Proyecto_Contingencias_II/
     └── Codigo_proyecto_CA0309.qmd
 ```
 
-4. Ejecución: descargar el `.zip` completo (o la carpeta completa desde GitHub), descomprimirlo sin cambiar la estructura y renderizar `Codigo/Codigo_proyecto_CA0309.qmd` completo, de arriba abajo. Las secciones dependen entre sí: C usa los resultados de A; D y el cálculo adicional usan C; E usa la mortalidad cargada en A y la función `tabla_md` de C.
-5. Salidas: las tablas y el histograma de E (PNG) se crean al renderizar en `Codigo/Resultados/Seccion_X/`.
-
+4.  Ejecución: descargar el `.zip` completo (o la carpeta completa desde GitHub), descomprimirlo sin cambiar la estructura y renderizar `Codigo/Codigo_proyecto_CA0309.qmd` completo, de arriba abajo. Las secciones dependen entre sí: C usa los resultados de A; D y el cálculo adicional usan C; E usa la mortalidad cargada en A y la función `tabla_md` de C.
+5.  Salidas: las tablas y el histograma de E (PNG) se crean al renderizar en `Codigo/Resultados/Seccion_X/`.
 
 # Construcción de la base de la proyección
 
@@ -112,6 +111,9 @@ con_fecha_defuncion <- nrow(con_fecha_defuncion_df)
 print(con_fecha_defuncion)
 # No se encontraron activos con fecha de defuncion registrada
 
+base_proyeccion_depurada <- base_proyeccion_depurada %>%
+  filter(is.na(`Fecha Defuncion`))
+
 # Se comprueba que los activos no aparezcan en la hoja de fallecidos o inactivos
 fallecidos_df <- read_excel(
   here("Base_datos", "Población_CA-0309.xlsx"),
@@ -154,6 +156,15 @@ print(poblacion_inicial_borrador == poblacion_inicial_comprobacion)
 base_proyeccion <- base_proyeccion_depurada
 poblacion_inicial <- poblacion_inicial_borrador
 poblacion_inicial
+
+carpeta_tablas_base_proyeccion <- file.path("Resultados", "Base_proyeccion")
+dir.create(carpeta_tablas_base_proyeccion, recursive = TRUE, showWarnings = FALSE)
+write.csv2(
+  base_proyeccion,
+  file = file.path(carpeta_tablas_base_proyeccion, "base_proyeccion.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ## Sección A: Población, decrementos y multiestado
@@ -204,6 +215,16 @@ base_decrementos_multiples_mujeres <- base_decrementos_multiples_mujeres %>%
   )
 View(base_decrementos_multiples_mujeres)
 
+carpeta_tablas_seccion_A <- file.path("Resultados", "Seccion_A")
+dir.create(carpeta_tablas_seccion_A, recursive = TRUE, showWarnings = FALSE)
+
+write.csv2(
+  base_decrementos_multiples_mujeres,
+  file = file.path(carpeta_tablas_seccion_A, "base_decrementos_multiples_mujeres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
 # Probabilidades dependientes para los hombres
 base_decrementos_multiples_hombres <- data.frame(
   "Edad" = base_mortalidad_decremento_unico$edad,
@@ -228,6 +249,13 @@ base_decrementos_multiples_hombres <- base_decrementos_multiples_hombres %>%
     qx_dependiente_renuncia = (ux_renuncia / ux_tau) * qx_tau
   )
 View(base_decrementos_multiples_hombres)
+
+write.csv2(
+  base_decrementos_multiples_hombres,
+  file = file.path(carpeta_tablas_seccion_A, "base_decrementos_multiples_hombres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ### Agrupacion de la base de proyeccion por edad y sexo
@@ -243,6 +271,13 @@ base_proyeccion_mujeres <- base_proyeccion %>%
 
 View(base_proyeccion_mujeres)
 
+write.csv2(
+  base_proyeccion_mujeres,
+  file = file.path(carpeta_tablas_seccion_A, "base_proyeccion_mujeres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
 # Se agrupan los hombres por edad
 base_proyeccion_hombres <- base_proyeccion %>%
   filter(Genero == "Masculino") %>%
@@ -250,6 +285,13 @@ base_proyeccion_hombres <- base_proyeccion %>%
   summarise(Activos = n())
 
 View(base_proyeccion_hombres)
+
+write.csv2(
+  base_proyeccion_hombres,
+  file = file.path(carpeta_tablas_seccion_A, "base_proyeccion_hombres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 
 # Se comprueba que la poblacion inicial coincida
 print(
@@ -327,6 +369,37 @@ View(proyeccion_mujeres_2027)
 View(proyeccion_mujeres_2028)
 View(proyeccion_mujeres_2029)
 View(proyeccion_mujeres_2030)
+
+write.csv2(
+  proyeccion_mujeres_2026,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2026.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2027,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2027.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2028,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2028.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2029,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2029.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2030,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2030.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ### Proyeccion a cinco años: hombres
@@ -397,6 +470,37 @@ View(proyeccion_hombres_2027)
 View(proyeccion_hombres_2028)
 View(proyeccion_hombres_2029)
 View(proyeccion_hombres_2030)
+
+write.csv2(
+  proyeccion_hombres_2026,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2026.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2027,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2027.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2028,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2028.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2029,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2029.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2030,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2030.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
 ```
 
 ### Matrices de transicion
@@ -1468,7 +1572,6 @@ exportar_csv(testing_b_mayor$fondos, "Extra_G3", "fondos_aportes_b_mayor_G3")
 exportar_csv(cuadro_extra, "Extra_G3", "cuadro_base_vs_b_mayor_G3")
 ```
 
-
 ## Sección E: Equity-linked y rentabilidad estocástica
 
 ### Parámetros de la cuenta individual
@@ -1737,4 +1840,3 @@ write.csv2(
   fileEncoding = "UTF-8"
 )
 ```
-

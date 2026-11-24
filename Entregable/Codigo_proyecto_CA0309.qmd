@@ -1,0 +1,1842 @@
+---
+title: "Codigo_proyecto_CA0309"
+format: html
+editor: visual
+---
+
+# Instrucciones de ejecución
+
+1.  Software: R 4.5.1. La simulación de la sección E usa `set.seed(2026)`; otra versión de R o de lenguaje puede producir una muestra distinta.
+2.  Paquetes: `readxl`, `here`, `dplyr`, `expm`, `knitr`, `ggplot2`.
+3.  Estructura: el proyecto se entrega como un `.zip` con las carpetas necesarias para ejecutar el código:
+
+```         
+Proyecto_Contingencias_II/
+├── Base_datos/
+│   ├── Población_CA-0309.xlsx
+│   └── CA0309_Mortalidad_CR2023.csv
+└── Codigo/
+    └── Codigo_proyecto_CA0309.qmd
+```
+
+4.  Ejecución: descargar el `.zip` completo (o la carpeta completa desde GitHub), descomprimirlo sin cambiar la estructura y renderizar `Codigo/Codigo_proyecto_CA0309.qmd` completo, de arriba abajo. Las secciones dependen entre sí: C usa los resultados de A; D y el cálculo adicional usan C; E usa la mortalidad cargada en A y la función `tabla_md` de C.
+5.  Salidas: las tablas y el histograma de E (PNG) se crean al renderizar en `Codigo/Resultados/Seccion_X/`.
+
+# Construcción de la base de la proyección
+
+```{r, warning= FALSE}
+library(readxl)
+library(here)
+library(dplyr)
+# La base de proyeccion solo contempla a la poblacion activa, en la primera hoja del Excel
+base_proyeccion_original <- read_excel(
+  here("Base_datos", "Población_CA-0309.xlsx"),
+  sheet = 1
+)
+
+# Se verifica que los tipos de datos sean de cada columna sean los correctos
+str(base_proyeccion_original)
+
+# Se modifica la columna de la fecha de nacimiento y la fecha de ingreso a tipo date
+base_proyeccion_original$`Fecha Nacimiento` <- as.Date(
+  base_proyeccion_original$`Fecha Nacimiento`
+)
+base_proyeccion_original$`Fecha Ingreso` <- as.Date(
+  base_proyeccion_original$`Fecha Ingreso`
+)
+
+# Se calcula la edad cumplida a la fecha de referencia
+fecha_referencia <- as.Date("2025-12-31")
+base_proyeccion_original <- base_proyeccion_original %>%
+  mutate(
+    Edad = as.integer(format(fecha_referencia, "%Y")) -
+      as.integer(format(`Fecha Nacimiento`, "%Y"))
+  )
+
+# Se revisa que las entradas tengan una fecha de nacimiento valida
+# Se revisan si existen fechas de nacimiento faltantes
+sin_nacimiento <- sum(is.na(base_proyeccion_original$`Fecha Nacimiento`))
+print(sin_nacimiento)
+# Se excluyen los registros sin fecha de nacimiento
+base_proyeccion_depurada <- base_proyeccion_original %>%
+  filter(!is.na(`Fecha Nacimiento`))
+# Se revisa si existen fechas de nacimiento posteriores a la fecha de referencia
+nacimientos_posteriores <- base_proyeccion_depurada %>%
+  filter(`Fecha Nacimiento` > fecha_referencia) %>%
+  nrow()
+print(nacimientos_posteriores)
+# No se encontraron nacimientos posteriores
+
+# Se revisa que las entradas tengan un sexo valido
+# Se revisan las categorias dentro de la columna
+table(base_proyeccion_depurada$Genero, useNA = "always")
+sin_sexo <- sum(is.na(base_proyeccion_depurada$Genero))
+print(sin_sexo)
+# Se excluyen los registros sin sexo
+base_proyeccion_depurada <- base_proyeccion_depurada %>%
+  filter(!is.na(`Genero`))
+
+# Se revisa que las entradas tengan una edad valida: [0, 106]
+edades_invalidas <- sum(
+  is.na(base_proyeccion_depurada$Edad) |
+    base_proyeccion_depurada$Edad < 0 |
+    base_proyeccion_depurada$Edad > 106
+)
+print(edades_invalidas)
+# Se excluyen los registros con edades invalidas
+base_proyeccion_depurada <- base_proyeccion_depurada %>%
+  filter(
+    !is.na(Edad),
+    Edad >= 0,
+    Edad <= 106
+  )
+
+# Se revisa si existen entradas duplicadas
+duplicados_df <- base_proyeccion_depurada %>%
+  group_by(`Id Asociado`) %>%
+  filter(n() > 1) %>%
+  arrange(`Id Asociado`)
+
+#View(duplicados_df)
+duplicados <- nrow(duplicados_df)
+print(duplicados)
+# No se encontraron entradas duplicadas
+
+# Se revisa que la columna de la fecha de defuncion no posea registros
+con_fecha_defuncion_df <- base_proyeccion_depurada %>%
+  filter(!is.na(`Fecha Defuncion`))
+
+#View(con_fecha_defuncion_df)
+con_fecha_defuncion <- nrow(con_fecha_defuncion_df)
+print(con_fecha_defuncion)
+# No se encontraron activos con fecha de defuncion registrada
+
+base_proyeccion_depurada <- base_proyeccion_depurada %>%
+  filter(is.na(`Fecha Defuncion`))
+
+# Se comprueba que los activos no aparezcan en la hoja de fallecidos o inactivos
+fallecidos_df <- read_excel(
+  here("Base_datos", "Población_CA-0309.xlsx"),
+  sheet = 2
+)
+inactivos_df <- read_excel(
+  here("Base_datos", "Población_CA-0309.xlsx"),
+  sheet = 3
+)
+
+# Se revisa el caso de activos - fallecidos
+activos_en_fallecidos <- base_proyeccion_depurada %>%
+  semi_join(fallecidos_df, by = "Id Asociado")
+
+activos_fallecidos <- nrow(activos_en_fallecidos)
+print(activos_fallecidos)
+# Concluya que no hay personas activas en la base de fallecidos
+
+# Se revisa el caso de activos - inactivos
+activos_en_inactivos <- base_proyeccion_depurada %>%
+  semi_join(inactivos_df, by = "Id Asociado")
+
+activos_inactivos <- nrow(activos_en_inactivos)
+print(activos_inactivos)
+# Concluya que no hay personas activas en la base de inactivos
+
+# Se comprueba que la poblacion inicial, tras efectuar las depuraciones, coincida
+poblacion_inicial_borrador <- nrow(base_proyeccion_depurada)
+poblacion_inicial_comprobacion <- nrow(base_proyeccion_original) -
+  sin_nacimiento -
+  nacimientos_posteriores -
+  sin_sexo -
+  edades_invalidas -
+  duplicados -
+  con_fecha_defuncion
+print(poblacion_inicial_borrador == poblacion_inicial_comprobacion)
+# Concluya que los calculos coinciden
+
+# Se definen finalmente, las dos variables a emplear en las proyecciones
+base_proyeccion <- base_proyeccion_depurada
+poblacion_inicial <- poblacion_inicial_borrador
+poblacion_inicial
+
+carpeta_tablas_base_proyeccion <- file.path("Resultados", "Base_proyeccion")
+dir.create(carpeta_tablas_base_proyeccion, recursive = TRUE, showWarnings = FALSE)
+write.csv2(
+  base_proyeccion,
+  file = file.path(carpeta_tablas_base_proyeccion, "base_proyeccion.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```
+
+## Sección A: Población, decrementos y multiestado
+
+### Bases de datos y supuestos
+
+```{r}
+# Se carga la base de la mortalidad de decremento unico
+base_mortalidad_decremento_unico <- read.csv(here(
+  "Base_datos",
+  "CA0309_Mortalidad_CR2023.csv"
+))
+# Se verifica que las columnas sean del tipo de dato adecuado
+str(base_mortalidad_decremento_unico)
+View(base_mortalidad_decremento_unico)
+
+# Se define la renuncia anual de decremento unico
+renuncia_decremento_unico <- 0.03
+```
+
+### Calculo de las probabilidades dependientes por sexo
+
+```{r}
+# Se procede a calcular las probabilidades dependientes de permanencia, fallecimiento y renuncia suponiendo fuerzas constantes dentro de cada año
+
+# Probabilidades dependientes para las mujeres
+base_decrementos_multiples_mujeres <- data.frame(
+  "Edad" = base_mortalidad_decremento_unico$edad,
+  "qx_prima_muerte" = base_mortalidad_decremento_unico$qx_femenino,
+  "qx_prima_renuncia" = rep(0.03, 111),
+  "px_prima_muerte" = 1 - base_mortalidad_decremento_unico$qx_femenino,
+  "px_prima_renuncia" = rep(1 - 0.03, 111)
+)
+
+# Se verifica que las probabilidades de permanencia de decremento unico sean correctas
+#View(base_decrementos_multiples_mujeres)
+
+# Se continua con el calculo correspondiente
+base_decrementos_multiples_mujeres <- base_decrementos_multiples_mujeres %>%
+  mutate(
+    ux_muerte = -log(px_prima_muerte),
+    ux_renuncia = -log(px_prima_renuncia),
+    ux_tau = ux_muerte + ux_renuncia,
+    px_tau = px_prima_muerte * px_prima_renuncia,
+    qx_tau = 1 - px_tau,
+    qx_dependiente_muerte = (ux_muerte / ux_tau) * qx_tau,
+    qx_dependiente_renuncia = (ux_renuncia / ux_tau) * qx_tau
+  )
+View(base_decrementos_multiples_mujeres)
+
+carpeta_tablas_seccion_A <- file.path("Resultados", "Seccion_A")
+dir.create(carpeta_tablas_seccion_A, recursive = TRUE, showWarnings = FALSE)
+
+write.csv2(
+  base_decrementos_multiples_mujeres,
+  file = file.path(carpeta_tablas_seccion_A, "base_decrementos_multiples_mujeres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
+# Probabilidades dependientes para los hombres
+base_decrementos_multiples_hombres <- data.frame(
+  "Edad" = base_mortalidad_decremento_unico$edad,
+  "qx_prima_muerte" = base_mortalidad_decremento_unico$qx_masculino,
+  "qx_prima_renuncia" = rep(0.03, 111),
+  "px_prima_muerte" = 1 - base_mortalidad_decremento_unico$qx_masculino,
+  "px_prima_renuncia" = rep(1 - 0.03, 111)
+)
+
+# Se verifica que las probabilidades de permanencia de decremento unico sean correctas
+View(base_decrementos_multiples_hombres)
+
+# Se continua con el calculo correspondiente
+base_decrementos_multiples_hombres <- base_decrementos_multiples_hombres %>%
+  mutate(
+    ux_muerte = -log(px_prima_muerte),
+    ux_renuncia = -log(px_prima_renuncia),
+    ux_tau = ux_muerte + ux_renuncia,
+    px_tau = px_prima_muerte * px_prima_renuncia,
+    qx_tau = 1 - px_tau,
+    qx_dependiente_muerte = (ux_muerte / ux_tau) * qx_tau,
+    qx_dependiente_renuncia = (ux_renuncia / ux_tau) * qx_tau
+  )
+View(base_decrementos_multiples_hombres)
+
+write.csv2(
+  base_decrementos_multiples_hombres,
+  file = file.path(carpeta_tablas_seccion_A, "base_decrementos_multiples_hombres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```
+
+### Agrupacion de la base de proyeccion por edad y sexo
+
+```{r}
+# Se agrupa por edad y sexo la base de proyeccion
+
+# Se agrupan las mujeres por edad
+base_proyeccion_mujeres <- base_proyeccion %>%
+  filter(Genero == "Femenino") %>%
+  group_by(Edad) %>%
+  summarise(Activas = n())
+
+View(base_proyeccion_mujeres)
+
+write.csv2(
+  base_proyeccion_mujeres,
+  file = file.path(carpeta_tablas_seccion_A, "base_proyeccion_mujeres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
+# Se agrupan los hombres por edad
+base_proyeccion_hombres <- base_proyeccion %>%
+  filter(Genero == "Masculino") %>%
+  group_by(Edad) %>%
+  summarise(Activos = n())
+
+View(base_proyeccion_hombres)
+
+write.csv2(
+  base_proyeccion_hombres,
+  file = file.path(carpeta_tablas_seccion_A, "base_proyeccion_hombres.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
+# Se comprueba que la poblacion inicial coincida
+print(
+  poblacion_inicial ==
+    sum(base_proyeccion_hombres$Activos) + sum(base_proyeccion_mujeres$Activas)
+)
+# Los calculos coinciden, por lo que se procede con la proyeccion
+```
+
+### Proyeccion a cinco años: mujeres
+
+```{r}
+# Se inicializa la poblacion activa de mujeres
+activas_mujeres <- base_proyeccion_mujeres %>%
+  mutate(
+    Renuncias_acumuladas = 0,
+    Fallecimientos_acumulados = 0
+  )
+
+# Se crea una lista para almacenar resultados
+resultados_proyeccion_mujeres <- list()
+
+# Se ejecuta la proyeccion a cinco años
+for (i in 1:5) {
+  calculo_proyeccion_mujeres <- activas_mujeres %>%
+    left_join(
+      base_decrementos_multiples_mujeres,
+      by = c("Edad" = "Edad")
+    )
+
+  # Se calculan los decrementos por cada causa
+  calculo_proyeccion_mujeres <- calculo_proyeccion_mujeres %>%
+    mutate(
+      Anio = 2025 + i,
+      Fallecimientos_anuales = Activas * qx_dependiente_muerte,
+      Renuncias_anuales = Activas * qx_dependiente_renuncia,
+      Activas_finales = Activas * px_tau,
+      Renuncias_acumuladas = Renuncias_acumuladas + Renuncias_anuales,
+      Fallecimientos_acumulados = Fallecimientos_acumulados +
+        Fallecimientos_anuales
+    )
+
+  # Se almacenan los resultados en la lista creada
+  resultados_proyeccion_mujeres[[i]] <- calculo_proyeccion_mujeres %>%
+    select(
+      Anio,
+      Edad,
+      Activas_iniciales = Activas,
+      Fallecimientos_anuales,
+      Renuncias_anuales,
+      Activas_finales,
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
+    )
+
+  # Se traslada a las sobrevivientes a la siguiente edad
+  activas_mujeres <- calculo_proyeccion_mujeres %>%
+    transmute(
+      Edad = Edad + 1,
+      Activas = Activas_finales,
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
+    )
+}
+
+# Se guardan los resultados de las proyecciones en variables independientes
+proyeccion_mujeres_2026 <- resultados_proyeccion_mujeres[[1]]
+proyeccion_mujeres_2027 <- resultados_proyeccion_mujeres[[2]]
+proyeccion_mujeres_2028 <- resultados_proyeccion_mujeres[[3]]
+proyeccion_mujeres_2029 <- resultados_proyeccion_mujeres[[4]]
+proyeccion_mujeres_2030 <- resultados_proyeccion_mujeres[[5]]
+
+View(proyeccion_mujeres_2026)
+View(proyeccion_mujeres_2027)
+View(proyeccion_mujeres_2028)
+View(proyeccion_mujeres_2029)
+View(proyeccion_mujeres_2030)
+
+write.csv2(
+  proyeccion_mujeres_2026,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2026.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2027,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2027.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2028,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2028.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2029,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2029.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_mujeres_2030,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_mujeres_2030.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```
+
+### Proyeccion a cinco años: hombres
+
+```{r}
+# Se inicializa la poblacion activa de mujeres
+activos_hombres <- base_proyeccion_hombres %>%
+  mutate(
+    Renuncias_acumuladas = 0,
+    Fallecimientos_acumulados = 0
+  )
+
+# Se crea una lista para almacenar resultados
+resultados_proyeccion_hombres <- list()
+
+# Se ejecuta la proyeccion a cinco años
+for (i in 1:5) {
+  calculo_proyeccion_hombres <- activos_hombres %>%
+    left_join(
+      base_decrementos_multiples_hombres,
+      by = c("Edad" = "Edad")
+    )
+
+  # Se calculan los decrementos por cada causa
+  calculo_proyeccion_hombres <- calculo_proyeccion_hombres %>%
+    mutate(
+      Anio = 2025 + i,
+      Fallecimientos_anuales = Activos * qx_dependiente_muerte,
+      Renuncias_anuales = Activos * qx_dependiente_renuncia,
+      Activos_finales = Activos * px_tau,
+      Renuncias_acumuladas = Renuncias_acumuladas + Renuncias_anuales,
+      Fallecimientos_acumulados = Fallecimientos_acumulados +
+        Fallecimientos_anuales
+    )
+
+  # Se almacenan los resultados en la lista creada
+  resultados_proyeccion_hombres[[i]] <- calculo_proyeccion_hombres %>%
+    select(
+      Anio,
+      Edad,
+      Activos_iniciales = Activos,
+      Fallecimientos_anuales,
+      Renuncias_anuales,
+      Activos_finales,
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
+    )
+
+  # Se traslada a las sobrevivientes a la siguiente edad
+  activos_hombres <- calculo_proyeccion_hombres %>%
+    transmute(
+      Edad = Edad + 1,
+      Activos = Activos_finales,
+      Renuncias_acumuladas,
+      Fallecimientos_acumulados
+    )
+}
+
+# Se guardan los resultados de las proyecciones en variables independientes
+proyeccion_hombres_2026 <- resultados_proyeccion_hombres[[1]]
+proyeccion_hombres_2027 <- resultados_proyeccion_hombres[[2]]
+proyeccion_hombres_2028 <- resultados_proyeccion_hombres[[3]]
+proyeccion_hombres_2029 <- resultados_proyeccion_hombres[[4]]
+proyeccion_hombres_2030 <- resultados_proyeccion_hombres[[5]]
+
+View(proyeccion_hombres_2026)
+View(proyeccion_hombres_2027)
+View(proyeccion_hombres_2028)
+View(proyeccion_hombres_2029)
+View(proyeccion_hombres_2030)
+
+write.csv2(
+  proyeccion_hombres_2026,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2026.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2027,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2027.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2028,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2028.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2029,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2029.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+write.csv2(
+  proyeccion_hombres_2030,
+  file = file.path(carpeta_tablas_seccion_A, "proyeccion_hombres_2030.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```
+
+### Matrices de transicion
+
+```{r}
+# Funcion de verificacion: cada fila debe sumar una unidad
+# Dada la precision decimal limitada de la computadora, se trabaja con la tolerancia de un error pequeño
+
+verificar_suma_filas_P <- function(lista_P) {
+  suma_unidad <- TRUE
+  for (i in 1:length(lista_P)) {
+    suma_filas_matriz_actual <- rowSums(lista_P[[i]])
+    for (j in 1:length(suma_filas_matriz_actual)) {
+      if (any(abs(suma_filas_matriz_actual - 1) > 1e-10)) {
+        suma_unidad <- FALSE
+        return(suma_unidad)
+      }
+    }
+  }
+  return(suma_unidad)
+}
+```
+
+#### Construccion de las matriz de transicion: mujeres
+
+```{r}
+# Se construyen las matrices de intensidades instantaneas
+Q_mujeres <- lapply(
+  1:nrow(base_decrementos_multiples_mujeres),
+  function(i) {
+    u_muerte <- base_decrementos_multiples_mujeres$ux_muerte[i]
+    u_renuncia <- base_decrementos_multiples_mujeres$ux_renuncia[i]
+
+    matrix(
+      c(
+        -(u_muerte + u_renuncia),
+        u_renuncia,
+        u_muerte,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(
+        c("Activo", "Renuncia", "Fallecimiento"),
+        c("Activo", "Renuncia", "Fallecimiento")
+      )
+    )
+  }
+)
+
+# Se construyen las matrices de transicion a partir de la ecuacion de Kolomogorov
+library(expm)
+P_mujeres <- lapply(
+  Q_mujeres,
+  function(Q) {
+    expm(Q)
+  }
+)
+
+# Se verifica que la filas de cada matriz sumen una unidad
+verificacion_P_mujeres <- verificar_suma_filas_P(P_mujeres)
+verificacion_P_mujeres
+```
+
+#### Construccion de las matriz de transicion: hombres
+
+```{r}
+# Se construyen las matrices de intensidades instantaneas
+Q_hombres <- lapply(
+  1:nrow(base_decrementos_multiples_hombres),
+  function(i) {
+    u_muerte <- base_decrementos_multiples_hombres$ux_muerte[i]
+    u_renuncia <- base_decrementos_multiples_hombres$ux_renuncia[i]
+
+    matrix(
+      c(
+        -(u_muerte + u_renuncia),
+        u_renuncia,
+        u_muerte,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(
+        c("Activo", "Renuncia", "Fallecimiento"),
+        c("Activo", "Renuncia", "Fallecimiento")
+      )
+    )
+  }
+)
+
+# Se construyen las matrices de transicion a partir de la ecuacion de Kolomogorov
+library(expm)
+P_hombres <- lapply(
+  Q_hombres,
+  function(Q) {
+    expm(Q)
+  }
+)
+
+# Se verifica que la filas de cada matriz sumen una unidad
+verificacion_P_hombres <- verificar_suma_filas_P(P_hombres)
+verificacion_P_hombres
+```
+
+### Proyeccion a partir de las matrices de transicion: mujeres
+
+```{r}
+# Se inicializa la poblacion de mujeres
+estado_inicial_mujeres <- base_proyeccion_mujeres %>%
+  transmute(
+    Edad,
+    Activo = Activas,
+    Renuncia = 0,
+    Fallecimiento = 0
+  )
+
+# Se crea una lista para almacenar los resultados de cada año
+resultados_mujeres_P <- list()
+
+# Se realiza la proyeccion a cinco años
+for (t in 1:5) {
+  # Se crea una lista para almacenar los resultados del año
+  resultados_anuales_mujeres_P <- list()
+
+  for (i in 1:nrow(estado_inicial_mujeres)) {
+    edad_actual <- estado_inicial_mujeres$Edad[i]
+
+    # Se busca el indice de la matriz correspondiente a la edad actual
+    indice_matriz <- match(
+      edad_actual,
+      base_decrementos_multiples_mujeres$Edad
+    )
+
+    # Se obtiene la matriz de transicion para la edad
+    P <- P_mujeres[[indice_matriz]]
+
+    # Se crea el vector de estados iniciales
+    estados_inicio_anio <- c(
+      estado_inicial_mujeres$Activo[i],
+      estado_inicial_mujeres$Renuncia[i],
+      estado_inicial_mujeres$Fallecimiento[i]
+    )
+
+    # Se calculan los estados finales
+    estados_acumulados_final_anio <- as.numeric(estados_inicio_anio %*% P)
+
+    # Se almacenan los resultados
+    resultados_anuales_mujeres_P[[i]] <- data.frame(
+      Anio = 2025 + t,
+      Edad = edad_actual,
+      Activas_iniciales = estados_inicio_anio[1],
+      Renuncias_anuales = estados_inicio_anio[1] * P[1, 2],
+      Fallecimientos_anuales = estados_inicio_anio[1] * P[1, 3],
+      Activas_finales = estados_acumulados_final_anio[1],
+      Renuncias_acumuladas = estados_acumulados_final_anio[2],
+      Fallecimientos_acumulados = estados_acumulados_final_anio[3]
+    )
+  }
+
+  # Se unen todas las edades del año correspondiente
+  resultados_mujeres_P[[t]] <- bind_rows(resultados_anuales_mujeres_P)
+
+  # Se realizan los cambios para el siguiente año
+  estado_inicial_mujeres <- resultados_mujeres_P[[t]] %>%
+    transmute(
+      Edad + 1,
+      Activo = Activas_finales,
+      Renuncia = Renuncias_acumuladas,
+      Fallecimiento = Fallecimientos_acumulados
+    )
+}
+
+# Se guardan los resultados anuales en variables independientes
+proyeccion_mujeres_2026_P <- resultados_mujeres_P[[1]]
+proyeccion_mujeres_2027_P <- resultados_mujeres_P[[2]]
+proyeccion_mujeres_2028_P <- resultados_mujeres_P[[3]]
+proyeccion_mujeres_2029_P <- resultados_mujeres_P[[4]]
+proyeccion_mujeres_2030_P <- resultados_mujeres_P[[5]]
+
+View(proyeccion_mujeres_2026_P)
+View(proyeccion_mujeres_2027_P)
+View(proyeccion_mujeres_2028_P)
+View(proyeccion_mujeres_2029_P)
+View(proyeccion_mujeres_2030_P)
+```
+
+### Proyeccion a partir de las matrices de transicion: hombres
+
+```{r}
+# Se inicializa la poblacion de mujeres
+estado_inicial_hombres <- base_proyeccion_hombres %>%
+  transmute(
+    Edad,
+    Activo = Activos,
+    Renuncia = 0,
+    Fallecimiento = 0
+  )
+
+# Se crea una lista para almacenar los resultados de cada año
+resultados_hombres_P <- list()
+
+# Se realiza la proyeccion a cinco años
+for (t in 1:5) {
+  # Se crea una lista para almacenar los resultados del año
+  resultados_anuales_hombres_P <- list()
+
+  for (i in 1:nrow(estado_inicial_hombres)) {
+    edad_actual <- estado_inicial_hombres$Edad[i]
+
+    # Se busca el indice de la matriz correspondiente a la edad actual
+    indice_matriz <- match(
+      edad_actual,
+      base_decrementos_multiples_hombres$Edad
+    )
+
+    # Se obtiene la matriz de transicion para la edad
+    P <- P_hombres[[indice_matriz]]
+
+    # Se crea el vector de estados iniciales
+    estados_inicio_anio <- c(
+      estado_inicial_hombres$Activo[i],
+      estado_inicial_hombres$Renuncia[i],
+      estado_inicial_hombres$Fallecimiento[i]
+    )
+
+    # Se calculan los estados finales
+    estados_acumulados_final_anio <- as.numeric(estados_inicio_anio %*% P)
+
+    # Se almacenan los resultados
+    resultados_anuales_hombres_P[[i]] <- data.frame(
+      Anio = 2025 + t,
+      Edad = edad_actual,
+      Activos_iniciales = estados_inicio_anio[1],
+      Renuncias_anuales = estados_inicio_anio[1] * P[1, 2],
+      Fallecimientos_anuales = estados_inicio_anio[1] * P[1, 3],
+      Activos_finales = estados_acumulados_final_anio[1],
+      Renuncias_acumuladas = estados_acumulados_final_anio[2],
+      Fallecimientos_acumulados = estados_acumulados_final_anio[3]
+    )
+  }
+
+  # Se unen todas las edades del año correspondiente
+  resultados_hombres_P[[t]] <- bind_rows(resultados_anuales_hombres_P)
+
+  # Se realizan los cambios para el siguiente año
+  estado_inicial_hombres <- resultados_hombres_P[[t]] %>%
+    transmute(
+      Edad + 1,
+      Activo = Activos_finales,
+      Renuncia = Renuncias_acumuladas,
+      Fallecimiento = Fallecimientos_acumulados
+    )
+}
+
+# Se guardan los resultados anuales en variables independientes
+proyeccion_hombres_2026_P <- resultados_hombres_P[[1]]
+proyeccion_hombres_2027_P <- resultados_hombres_P[[2]]
+proyeccion_hombres_2028_P <- resultados_hombres_P[[3]]
+proyeccion_hombres_2029_P <- resultados_hombres_P[[4]]
+proyeccion_hombres_2030_P <- resultados_hombres_P[[5]]
+
+View(proyeccion_hombres_2026_P)
+View(proyeccion_hombres_2027_P)
+View(proyeccion_hombres_2028_P)
+View(proyeccion_hombres_2029_P)
+View(proyeccion_hombres_2030_P)
+```
+
+### Construcción del resumen estadístico de la base de proyección
+
+```{r}
+# A continuacion se contruye una tabla con el resumen estadistico de la base de proyeccion conservando la diferenciacion por sexo.
+
+# Resumen estadistico de las mujeres
+resumen_mujeres <- base_proyeccion_mujeres %>%
+  summarise(
+    Total_activos = sum(Activas),
+    Edad_promedio = mean(Edad, na.rm = TRUE),
+    Edad_mediana = median(Edad, na.rm = TRUE),
+    Edad_minima = min(Edad, na.rm = TRUE),
+    Edad_maxima = max(Edad, na.rm = TRUE),
+    Desviacion_estandar = sd(Edad, na.rm = TRUE),
+    Edad_mayor_concentracion = Edad[which.max(Activas)]
+  ) %>%
+  mutate(Genero = "Femenino")
+
+# Resumen estadistico de los hombres
+resumen_hombres <- base_proyeccion_hombres %>%
+  summarise(
+    Total_activos = sum(Activos),
+    Edad_promedio = mean(Edad, na.rm = TRUE),
+    Edad_mediana = median(Edad, na.rm = TRUE),
+    Edad_minima = min(Edad, na.rm = TRUE),
+    Edad_maxima = max(Edad, na.rm = TRUE),
+    Desviacion_estandar = sd(Edad, na.rm = TRUE),
+    Edad_mayor_concentracion = Edad[which.max(Activos)]
+  ) %>%
+  mutate(Genero = "Masculino")
+
+# Se unen ambos resumenes
+resumen_general_activos <- bind_rows(
+  resumen_mujeres,
+  resumen_hombres
+) %>%
+  select(Genero, everything())
+
+View(resumen_general_activos)
+```
+
+### Construcción de la distribución anual de la población por causa
+
+```{r}
+distribucion_anual_mujeres <- bind_rows(
+  proyeccion_mujeres_2026,
+  proyeccion_mujeres_2027,
+  proyeccion_mujeres_2028,
+  proyeccion_mujeres_2029,
+  proyeccion_mujeres_2030
+) %>%
+  group_by(Anio) %>%
+  summarise(
+    Poblacion_inicial = sum(Activas_iniciales, na.rm = TRUE),
+    Fallecimientos = sum(Fallecimientos_anuales, na.rm = TRUE),
+    Renuncias = sum(Renuncias_anuales, na.rm = TRUE),
+    Poblacion_final = sum(Activas_finales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(Genero = "Femenino") %>%
+  select(Anio, Genero, everything())
+
+distribucion_anual_hombres <- bind_rows(
+  proyeccion_hombres_2026,
+  proyeccion_hombres_2027,
+  proyeccion_hombres_2028,
+  proyeccion_hombres_2029,
+  proyeccion_hombres_2030
+) %>%
+  group_by(Anio) %>%
+  summarise(
+    Poblacion_inicial = sum(Activos_iniciales, na.rm = TRUE),
+    Fallecimientos = sum(Fallecimientos_anuales, na.rm = TRUE),
+    Renuncias = sum(Renuncias_anuales, na.rm = TRUE),
+    Poblacion_final = sum(Activos_finales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(Genero = "Masculino") %>%
+  select(Anio, Genero, everything())
+
+distribucion_anual_general <- bind_rows(
+  distribucion_anual_mujeres,
+  distribucion_anual_hombres
+) %>%
+  arrange(Anio, Genero)
+
+View(distribucion_anual_general)
+```
+
+```{r}
+# Ahora, se procede a comprobar para cada año que la poblacion inicial coincide con la suma de los fallecimientos anuales, las renuncias anuales y la poblacion final. Se mantiene la diferenciacion por sexo. Ademas, las comprobaciones se efectuan con una pequeña tolerancia debido a la limitacion decimal de la computadora.
+
+# Comprobacion mujeres
+comprobacion_mujeres <- distribucion_anual_mujeres %>%
+  mutate(
+    Comprobacion = Poblacion_inicial -
+      Fallecimientos -
+      Renuncias -
+      Poblacion_final,
+    Coincide = abs(Comprobacion) < 0.01
+  )
+
+View(comprobacion_mujeres)
+
+
+# Comprobacion hombres
+comprobacion_hombres <- distribucion_anual_hombres %>%
+  mutate(
+    Comprobacion = Poblacion_inicial -
+      Fallecimientos -
+      Renuncias -
+      Poblacion_final,
+    Coincide = abs(Comprobacion) < 0.01
+  )
+
+View(comprobacion_hombres)
+```
+
+## Sección B: Varias vidas
+
+### Clasificación de activos y asignación de parejas hipotéticas
+
+```{r}
+# Se separan los registros con fecha de defuncion valida
+revision_defunciones_B <- base_proyeccion %>%
+  filter(!is.na(`Fecha Defuncion`))
+
+# Se crea una copia de la población inicial
+base_B <- base_proyeccion %>%
+  filter(is.na(`Fecha Defuncion`)) %>%
+  transmute(
+    id = `Id Asociado`,
+    edad_activo = Edad,
+    sexo_activo = Genero
+  )
+
+# Se asigna pareja a quienes tienen 30 años o más
+base_B$tiene_pareja <- base_B$edad_activo >= 30
+
+# Diferencia de edad según la edad del activo
+base_B$diferencia_edad <- NA_real_
+base_B$diferencia_edad[
+  base_B$edad_activo >= 30 &
+    base_B$edad_activo < 35
+] <- 0
+base_B$diferencia_edad[
+  base_B$edad_activo >= 35 &
+    base_B$edad_activo < 55
+] <- 3
+base_B$diferencia_edad[base_B$edad_activo >= 55] <- 5
+
+# Sexo y edad del cónyuge
+base_B$sexo_conyuge <- ifelse(
+  !base_B$tiene_pareja,
+  NA,
+  ifelse(base_B$sexo_activo == "Masculino", "Femenino", "Masculino")
+)
+
+base_B$edad_conyuge <- ifelse(
+  !base_B$tiene_pareja,
+  NA,
+  ifelse(
+    base_B$sexo_activo == "Masculino",
+    base_B$edad_activo - base_B$diferencia_edad,
+    base_B$edad_activo + base_B$diferencia_edad
+  )
+)
+
+# Resumen de cuántos registros se recibieron y utilizaron
+revision_poblacion_B <- data.frame(
+  Concepto = c(
+    "Activos recibidos de la base común",
+    "Registros con defunción informada separados en B",
+    "Activos utilizados para clasificar en B"
+  ),
+  Cantidad = c(
+    nrow(base_proyeccion),
+    nrow(revision_defunciones_B),
+    nrow(base_B)
+  )
+)
+```
+
+### Agrupación de parejas y exclusiones propias de B
+
+```{r}
+# La tabla de mortalidad debe tener una sola fila por edad
+if (sum(duplicated(base_mortalidad_decremento_unico$edad)) > 0) {
+  stop("Hay edades repetidas en la tabla de mortalidad")
+}
+
+# Busca qx para cada edad y sexo
+obtener_q_B <- function(edades, sexo) {
+  fila <- match(edades, base_mortalidad_decremento_unico$edad)
+  sexo <- rep(sexo, length.out = length(edades))
+
+  ifelse(
+    sexo == "Masculino",
+    base_mortalidad_decremento_unico$qx_masculino[fila],
+    base_mortalidad_decremento_unico$qx_femenino[fila]
+  )
+}
+
+# Empezamos suponiendo que cada pareja tiene mortalidad disponible
+base_B$mortalidad_disponible <- base_B$tiene_pareja &
+  base_B$edad_conyuge <= 106
+
+# Revisamos los años 0, 1, 2, 3 y 4
+for (anio in 0:4) {
+  q_activo <- obtener_q_B(
+    base_B$edad_activo + anio,
+    base_B$sexo_activo
+  )
+
+  q_conyuge <- obtener_q_B(
+    base_B$edad_conyuge + anio,
+    base_B$sexo_conyuge
+  )
+
+  base_B$mortalidad_disponible <- base_B$mortalidad_disponible &
+    is.finite(q_activo) &
+    q_activo >= 0 &
+    q_activo <= 1 &
+    is.finite(q_conyuge) &
+    q_conyuge >= 0 &
+    q_conyuge <= 1
+}
+
+# Registramos por qué se excluye una pareja
+base_B$motivo_exclusion_B <- ifelse(
+  base_B$tiene_pareja & base_B$edad_conyuge > 106,
+  "Edad inicial del cónyuge mayor que 106",
+  NA
+)
+
+base_B$motivo_exclusion_B <- ifelse(
+  base_B$tiene_pareja &
+    !base_B$mortalidad_disponible &
+    is.na(base_B$motivo_exclusion_B),
+  "Mortalidad incompleta o no utilizable para los cinco años",
+  base_B$motivo_exclusion_B
+)
+
+base_B$admisible_B <- base_B$tiene_pareja &
+  base_B$mortalidad_disponible
+
+base_B$clasificacion_B <- ifelse(
+  !base_B$tiene_pareja,
+  "Sin pareja",
+  ifelse(
+    base_B$admisible_B,
+    "Pareja admisible",
+    "Pareja excluida solo de B"
+  )
+)
+
+# Contamos cuántas parejas tienen las mismas edades y sexos
+cohortes_B <- base_B %>%
+  filter(tiene_pareja) %>%
+  count(
+    edad_activo,
+    sexo_activo,
+    edad_conyuge,
+    sexo_conyuge,
+    admisible_B,
+    motivo_exclusion_B,
+    name = "n_inicial"
+  ) %>%
+  mutate(cohorte = row_number())
+
+# Añadimos el número de cohorte a cada persona
+base_B <- base_B %>%
+  left_join(
+    cohortes_B %>%
+      select(edad_activo, sexo_activo, edad_conyuge, sexo_conyuge, cohorte),
+    by = c("edad_activo", "sexo_activo", "edad_conyuge", "sexo_conyuge")
+  )
+
+exclusiones_B <- base_B %>%
+  filter(tiene_pareja, !admisible_B)
+
+cohortes_admisibles_B <- cohortes_B %>%
+  filter(admisible_B)
+
+resumen_parejas_B <- data.frame(
+  Concepto = c(
+    "Activos sin pareja",
+    "Activos con pareja hipotética",
+    "Exclusiones propias de B",
+    "Parejas admisibles"
+  ),
+  Cantidad = c(
+    sum(!base_B$tiene_pareja),
+    sum(base_B$tiene_pareja),
+    nrow(exclusiones_B),
+    sum(cohortes_admisibles_B$n_inicial)
+  )
+)
+```
+
+### Probabilidades de los tres estatus durante cinco años
+
+```{r}
+if (nrow(cohortes_admisibles_B) == 0) {
+  stop("No hay parejas admisibles para calcular")
+}
+
+resultados_cohortes_B <- data.frame()
+
+for (j in 1:nrow(cohortes_admisibles_B)) {
+  cohorte_actual <- cohortes_admisibles_B[j, ]
+  t <- 1:5
+
+  # Edades al inicio de cada año
+  edades_activo <- cohorte_actual$edad_activo + t - 1
+  edades_conyuge <- cohorte_actual$edad_conyuge + t - 1
+
+  # Mortalidad de cada persona durante los cinco años
+  q_activo <- obtener_q_B(
+    edades_activo,
+    cohorte_actual$sexo_activo
+  )
+
+  q_conyuge <- obtener_q_B(
+    edades_conyuge,
+    cohorte_actual$sexo_conyuge
+  )
+
+  # Probabilidad de seguir vivo al cierre de cada año
+  supervivencia_activo <- cumprod(1 - q_activo)
+  supervivencia_conyuge <- cumprod(1 - q_conyuge)
+
+  resultado_actual <- data.frame(
+    cohorte = cohorte_actual$cohorte,
+    edad_activo = cohorte_actual$edad_activo,
+    sexo_activo = cohorte_actual$sexo_activo,
+    edad_conyuge = cohorte_actual$edad_conyuge,
+    sexo_conyuge = cohorte_actual$sexo_conyuge,
+    n_inicial = cohorte_actual$n_inicial,
+    t = t,
+    Anio = 2025 + t,
+    edad_activo_anual = edades_activo,
+    edad_conyuge_anual = edades_conyuge,
+    q_activo = q_activo,
+    q_conyuge = q_conyuge,
+    supervivencia_activo = supervivencia_activo,
+    supervivencia_conyuge = supervivencia_conyuge
+  )
+
+  resultados_cohortes_B <- rbind(
+    resultados_cohortes_B,
+    resultado_actual
+  )
+}
+
+probabilidades_B <- resultados_cohortes_B %>%
+  mutate(
+    p_ambos = supervivencia_activo * supervivencia_conyuge,
+
+    p_ultimo = supervivencia_activo +
+      supervivencia_conyuge -
+      p_ambos,
+
+    p_conyuge = (1 - supervivencia_activo) *
+      supervivencia_conyuge,
+
+    p_solo_activo = supervivencia_activo *
+      (1 - supervivencia_conyuge),
+
+    p_ninguno = (1 - supervivencia_activo) *
+      (1 - supervivencia_conyuge)
+  )
+```
+
+### Pagos unitarios esperados al cierre de cada año
+
+```{r}
+# Cada estatus genera una cobertura alternativa
+# La ponderación utiliza siempre la cantidad inicial de cada cohorte
+resultados_B <- probabilidades_B %>%
+  mutate(
+    pagos_ambos = n_inicial * p_ambos,
+    pagos_ultimo = n_inicial * p_ultimo,
+    pagos_conyuge = n_inicial * p_conyuge
+  )
+
+pagos_anuales_B <- resultados_B %>%
+  group_by(t, Anio) %>%
+  summarise(
+    Ambos_vivos = sum(pagos_ambos),
+    Al_menos_uno_vivo = sum(pagos_ultimo),
+    Conyuge_vivo_activo_fallecido = sum(pagos_conyuge),
+    .groups = "drop"
+  )
+```
+
+### Valores presentes de las rentas unitarias
+
+```{r}
+# Tasa anual efectiva de descuento del proyecto
+descuento_B <- 0.04
+
+# Los pagos se realizan al cierre de cada año
+resultados_B <- resultados_B %>%
+  mutate(
+    factor_descuento = (1 + descuento_B)^(-t),
+
+    VP_ambos = pagos_ambos * factor_descuento,
+    VP_ultimo = pagos_ultimo * factor_descuento,
+    VP_conyuge = pagos_conyuge * factor_descuento
+  )
+
+# Valores presentes unitarios y agregados por cohorte
+VP_cohortes_B <- resultados_B %>%
+  group_by(
+    cohorte,
+    edad_activo,
+    sexo_activo,
+    edad_conyuge,
+    sexo_conyuge,
+    n_inicial
+  ) %>%
+  summarise(
+    Renta_unitaria_ambos = sum(factor_descuento * p_ambos),
+    Renta_unitaria_ultimo = sum(factor_descuento * p_ultimo),
+    Renta_unitaria_conyuge = sum(factor_descuento * p_conyuge),
+
+    VP_ambos = sum(VP_ambos),
+    VP_ultimo = sum(VP_ultimo),
+    VP_conyuge = sum(VP_conyuge),
+    .groups = "drop"
+  )
+
+# Se presentan las tres alternativas por separado
+VP_rentas_B <- data.frame(
+  Cobertura = c(
+    "Vida conjunta",
+    "Último sobreviviente",
+    "Cónyuge sobreviviente"
+  ),
+  VP_agregado = c(
+    sum(resultados_B$VP_ambos),
+    sum(resultados_B$VP_ultimo),
+    sum(resultados_B$VP_conyuge)
+  )
+)
+
+VP_rentas_B <- VP_rentas_B %>%
+  mutate(
+    VP_promedio_por_pareja = VP_agregado /
+      sum(cohortes_admisibles_B$n_inicial)
+  )
+```
+
+### Verificaciones de la sección B
+
+```{r}
+verificaciones_B <- data.frame(
+  Verificacion = c(
+    "Parejas admisibles conciliadas",
+    "Cinco años por cohorte",
+    "Los cuatro estados suman uno"
+  ),
+  Cumple = c(
+    sum(base_B$admisible_B) == sum(cohortes_admisibles_B$n_inicial),
+
+    nrow(probabilidades_B) == 5 * nrow(cohortes_admisibles_B),
+
+    all(
+      abs(
+        probabilidades_B$p_ambos +
+          probabilidades_B$p_solo_activo +
+          probabilidades_B$p_conyuge +
+          probabilidades_B$p_ninguno -
+          1
+      ) <
+        1e-10
+    )
+  )
+)
+```
+
+## Sección C: Flujos, reservas suministradas y profit testing
+
+### Parámetros de la cartera
+
+```{r}
+# Se definen los parámetros para la cartera de polizas
+
+parametros_profit <- list(
+  prima_anual = 50000,
+  beneficio_muerte = 5000000,
+  gasto_vigente = 10000,
+  comision_prima = 0.05, # porcentaje sobre prima
+  adquisicion = 75000,
+  recursos_contrato = 100000,
+  rendimiento_i = 0.05,
+  descuento_d = 0.04,
+  reservas = c(0, 40000, 35000, 25000, 15000, 0)
+)
+
+# Para la D
+parametros_adverso <- modifyList(
+  parametros_profit,
+  list(gasto_vigente = 11000, rendimiento_i = 0.04)
+)
+
+# Para el extra
+parametros_b_mayor <- modifyList(
+  parametros_profit,
+  list(beneficio_muerte = 5500000)
+)
+```
+
+### Datos de población anual
+
+```{r}
+datos_poblacion <- distribucion_anual_general %>%
+  group_by(Anio) %>%
+  summarise(
+    activos_inicio = sum(Poblacion_inicial),
+    fallecimientos_esp = sum(Fallecimientos),
+    renuncias_esp = sum(Renuncias),
+    activos_cierre = sum(Poblacion_final)
+  )
+
+N0 <- datos_poblacion$activos_inicio[1]
+```
+
+### Funciones auxiliares para tablas
+
+```{r}
+library(knitr)
+
+# Convierte una tabla en Markdown
+tabla_md <- function(tabla, digits = 4) {
+  tabla %>%
+    mutate(across(any_of(c("Anio", "periodo")), as.character)) %>%
+    kable(
+      format = "markdown",
+      digits = digits,
+      format.args = list(nsmall = digits, big.mark = " ", decimal.mark = ",")
+    )
+}
+
+# Guarda una tabla como CSV
+exportar_csv <- function(tabla, carpeta, nombre) {
+  ruta <- here("Codigo", "Resultados", carpeta)
+  dir.create(ruta, recursive = TRUE, showWarnings = FALSE)
+  write.csv2(
+    tabla,
+    file = file.path(ruta, paste0(nombre, ".csv")),
+    row.names = FALSE,
+    fileEncoding = "UTF-8"
+  )
+}
+```
+
+### Profit testing
+
+#### Resultados de cartera
+
+```{r}
+profit_testing <- function(para, datos, caso = "Base") {
+  N0 <- datos$activos_inicio[1]
+  n_anios <- nrow(datos)
+
+  # Flujos y resultado de cartera
+  flujos <- datos %>%
+    mutate(
+      periodo = row_number(),
+      reserva_inicial = para$reservas[seq_len(n_anios)],
+      reserva_final = para$reservas[seq_len(n_anios) + 1],
+      reserva_ini_total = reserva_inicial * activos_inicio,
+      reserva_fin_total = reserva_final * activos_cierre,
+      primas = para$prima_anual * activos_inicio,
+      gastos = para$gasto_vigente * activos_inicio,
+      comisiones = para$comision_prima * primas,
+      fondos_acumulados = (reserva_ini_total + primas - gastos - comisiones) *
+        (1 + para$rendimiento_i),
+      beneficios = para$beneficio_muerte * fallecimientos_esp,
+      resultado_cartera = fondos_acumulados - beneficios - reserva_fin_total,
+      v_cierre = (1 + para$descuento_d)^(-periodo),
+      v_inicio = (1 + para$descuento_d)^(-(periodo - 1)),
+      vp_resultado = resultado_cartera * v_cierre,
+      vp_primas = primas * v_inicio,
+      vp_beneficios = beneficios * v_cierre,
+      profit_vector = resultado_cartera / activos_inicio,
+      profit_signature = resultado_cartera / N0
+    )
+
+  # NPV y margen
+  npv <- -para$adquisicion * N0 + sum(flujos$vp_resultado)
+  margen <- npv / sum(flujos$vp_primas)
+
+  # Recursos y aportes
+  fondo_inicial <- (para$recursos_contrato - para$adquisicion) * N0
+  fondo_inicio_anio <- numeric(n_anios)
+  fondo_antes_aporte <- numeric(n_anios)
+  aporte <- numeric(n_anios)
+  fondo_despues <- numeric(n_anios)
+
+  fondo_previo <- fondo_inicial
+  for (i in seq_len(n_anios)) {
+    fondo_inicio_anio[i] <- fondo_previo
+    fondo_antes_aporte[i] <- (fondo_previo +
+      flujos$primas[i] -
+      flujos$gastos[i] -
+      flujos$comisiones[i]) *
+      (1 + para$rendimiento_i) -
+      flujos$beneficios[i]
+    aporte[i] <- max(-fondo_antes_aporte[i], 0)
+    fondo_despues[i] <- fondo_antes_aporte[i] + aporte[i]
+    fondo_previo <- fondo_despues[i]
+  }
+
+  tabla_fondos <- tibble(
+    Anio = flujos$Anio,
+    periodo = flujos$periodo,
+    fondo_inicio_anio = fondo_inicio_anio,
+    fondo_antes_aporte = fondo_antes_aporte,
+    aporte = aporte,
+    fondo_despues = fondo_despues
+  )
+
+  respaldo_anio1 <- tabla_fondos$fondo_antes_aporte[1] -
+    flujos$reserva_fin_total[1]
+
+  resumen <- tibble(
+    caso = caso,
+    vp_beneficios = sum(flujos$vp_beneficios),
+    npv = npv,
+    margen = margen,
+    saldo_minimo = min(tabla_fondos$fondo_antes_aporte),
+    total_aportes = sum(tabla_fondos$aporte),
+    respaldo_anio1 = respaldo_anio1
+  )
+  list(flujos = flujos, fondos = tabla_fondos, resumen = resumen)
+}
+```
+
+### Caso base
+
+```{r}
+testing_base <- profit_testing(
+  parametros_profit,
+  datos_poblacion,
+  caso = "Base"
+)
+
+# Tabla anual
+tabla_base <- testing_base$flujos %>%
+  transmute(
+    Anio,
+    `Activos al inicio` = activos_inicio,
+    `Fallecimientos esperados` = fallecimientos_esp,
+    `Primas (M)` = primas / 1e6,
+    `Gastos y comisiones (M)` = (gastos + comisiones) / 1e6,
+    `Beneficios (M)` = beneficios / 1e6,
+    `Reserva final (M)` = reserva_fin_total / 1e6,
+    `Resultado (M)` = resultado_cartera / 1e6
+  )
+
+# Recursos y aportes
+tabla_fondos_base <- testing_base$fondos %>%
+  mutate(across(fondo_inicio_anio:fondo_despues, ~ .x / 1e6))
+
+# Desglose del año 1
+a1 <- testing_base$flujos[1, ]
+desglose_anio1 <- tibble(
+  concepto = c(
+    "Reserva inicial total",
+    "Primas netas de gasto y comisión",
+    "Fondos acumulados al cierre, con rendimiento",
+    "Beneficios por fallecimiento",
+    "Reserva final total",
+    "Resultado de cartera"
+  ),
+  monto = c(
+    a1$reserva_ini_total,
+    a1$primas - a1$gastos - a1$comisiones,
+    a1$fondos_acumulados,
+    a1$beneficios,
+    a1$reserva_fin_total,
+    a1$resultado_cartera
+  )
+)
+
+# Para hacer comparaciones
+
+comparacion_escenarios <- function(tabla) {
+  dif <- tabla %>%
+    summarise(across(where(is.numeric), ~ .x[2] - .x[1])) %>%
+    mutate(caso = "Diferencia")
+  bind_rows(tabla, dif) %>% select(caso, everything())
+}
+
+exportar_csv(testing_base$flujos, "Seccion_C", "flujos_anuales_base_C")
+exportar_csv(testing_base$fondos, "Seccion_C", "fondos_aportes_base_C")
+exportar_csv(testing_base$resumen, "Seccion_C", "resumen_base_C")
+exportar_csv(desglose_anio1, "Seccion_C", "desglose_anio1_C")
+```
+
+## Sección D: Escenario adverso y respaldo de las reservas
+
+```{r}
+testing_adverso <- profit_testing(
+  parametros_adverso,
+  datos_poblacion,
+  caso = "Adverso"
+)
+
+# Respaldo de cada año
+
+respaldo_por_anio <- function(prima, para, datos) {
+  n_anios <- nrow(datos)
+  neta <- prima * (1 - para$comision_prima) - para$gasto_vigente # por contrato
+  reserva_total <- para$reservas[2:(n_anios + 1)] * datos$activos_cierre
+  beneficios <- para$beneficio_muerte * datos$fallecimientos_esp
+  fondo <- (para$recursos_contrato - para$adquisicion) * datos$activos_inicio[1]
+
+  respaldo <- numeric(n_anios)
+  for (i in seq_len(n_anios)) {
+    fondo <- (fondo + neta * datos$activos_inicio[i]) *
+      (1 + para$rendimiento_i) -
+      beneficios[i]
+    respaldo[i] <- fondo - reserva_total[i]
+  }
+  respaldo
+}
+
+# Prima que hace respaldo = 0 en el año indicado
+
+prima_minima <- function(para, datos, anio = 1) {
+  uniroot(
+    function(p) respaldo_por_anio(p, para, datos)[anio],
+    interval = c(para$prima_anual, 5 * para$prima_anual),
+    tol = 1e-8
+  )$root
+}
+
+prima_min_base <- prima_minima(parametros_profit, datos_poblacion)
+prima_min_adverso <- prima_minima(parametros_adverso, datos_poblacion)
+format(c(prima_min_base, prima_min_adverso), nsmall = 4)
+
+cuadro_adverso <- bind_rows(testing_base$resumen, testing_adverso$resumen) %>%
+  select(caso, npv, margen, saldo_minimo, total_aportes, respaldo_anio1) %>%
+  comparacion_escenarios()
+
+cuadro_adverso_md <- cuadro_adverso %>%
+  transmute(
+    Caso = caso,
+    `NPV (M)` = npv / 1e6,
+    `Margen` = margen,
+    `Saldo mínimo (M)` = saldo_minimo / 1e6,
+    `Total aportes (M)` = total_aportes / 1e6,
+    `Respaldo año 1 (M)` = respaldo_anio1 / 1e6
+  )
+
+exportar_csv(testing_adverso$flujos, "Seccion_D", "flujos_anuales_adverso_D")
+exportar_csv(testing_adverso$fondos, "Seccion_D", "fondos_aportes_adverso_D")
+exportar_csv(cuadro_adverso, "Seccion_D", "cuadro_base_vs_adverso_D")
+```
+
+### Extra Grupo 3
+
+```{r}
+testing_b_mayor <- profit_testing(
+  parametros_b_mayor,
+  datos_poblacion,
+  caso = "Beneficio mayor"
+)
+
+cuadro_extra <- bind_rows(testing_base$resumen, testing_b_mayor$resumen) %>%
+  comparacion_escenarios()
+
+cuadro_extra_md <- cuadro_extra %>%
+  transmute(
+    Caso = caso,
+    `VP beneficios (M)` = vp_beneficios / 1e6,
+    `NPV (M)` = npv / 1e6,
+    `Margen` = margen,
+    `Saldo mínimo (M)` = saldo_minimo / 1e6,
+    `Total aportes (M)` = total_aportes / 1e6,
+    `Respaldo año 1 (M)` = respaldo_anio1 / 1e6
+  )
+
+exportar_csv(testing_b_mayor$flujos, "Extra_G3", "flujos_anuales_b_mayor_G3")
+exportar_csv(testing_b_mayor$fondos, "Extra_G3", "fondos_aportes_b_mayor_G3")
+exportar_csv(cuadro_extra, "Extra_G3", "cuadro_base_vs_b_mayor_G3")
+```
+
+## Sección E: Equity-linked y rentabilidad estocástica
+
+### Parámetros de la cuenta individual
+
+```{r}
+library(ggplot2)
+
+# Parametros de la cuenta individual
+edad_cuenta <- 45
+saldo_inicial <- 100000
+cargo_anual <- 0.02
+media_logrendimiento <- 0.04
+desviacion_logrendimiento <- 0.15
+numero_trayectorias <- 1000
+numero_anios <- 5
+descuento_E <- 0.04
+
+# Garantias a comparar
+garantia_100 <- 100000
+garantia_110 <- 110000
+
+carpeta_tablas <- file.path("Resultados", "Seccion_E")
+dir.create(carpeta_tablas, recursive = TRUE, showWarnings = FALSE)
+```
+
+### Simulación de las trayectorias de la cuenta
+
+```{r}
+# Choques normales independientes entre años y trayectorias
+set.seed(2026)
+# Se documenta la version de R utilizada, pues otra version o lenguaje puede producir otra muestra
+cat("Versión de R:", R.version.string, "\n")
+choques <- matrix(
+  rnorm(numero_trayectorias * numero_anios),
+  nrow = numero_trayectorias,
+  ncol = numero_anios
+)
+
+# Logrendimiento de cada año
+logrendimientos <- media_logrendimiento + desviacion_logrendimiento * choques
+
+# Matrices para guardar la cuenta
+saldos_inicio <- matrix(0, nrow = numero_trayectorias, ncol = numero_anios)
+cargos <- matrix(0, nrow = numero_trayectorias, ncol = numero_anios)
+saldos_cierre <- matrix(0, nrow = numero_trayectorias, ncol = numero_anios)
+
+# El cargo se deduce al inicio de cada año, antes del rendimiento
+saldo_actual <- rep(saldo_inicial, numero_trayectorias)
+
+for (t in 1:numero_anios) {
+  saldos_inicio[, t] <- saldo_actual
+  cargos[, t] <- cargo_anual * saldo_actual
+  saldos_cierre[, t] <- (saldo_actual - cargos[, t]) * exp(logrendimientos[, t])
+  saldo_actual <- saldos_cierre[, t]
+}
+
+saldo_final <- saldos_cierre[, numero_anios]
+
+# Complemento a cargo del proveedor al cierre del año 5
+complemento_100 <- pmax(garantia_100 - saldo_final, 0)
+complemento_110 <- pmax(garantia_110 - saldo_final, 0)
+```
+
+### Permanencia del hombre representativo
+
+```{r}
+# Permanencia con mortalidad y renuncia actuando simultaneamente
+edades_cuenta <- edad_cuenta + 0:(numero_anios - 1)
+qx_hombre <- base_mortalidad_decremento_unico$qx_masculino[
+  match(edades_cuenta, base_mortalidad_decremento_unico$edad)
+]
+px_tau_cuenta <- (1 - qx_hombre) * (1 - renuncia_decremento_unico)
+
+# Permanencia al inicio de cada año y al vencimiento
+perm_inicio <- c(1, cumprod(px_tau_cuenta))[1:numero_anios]
+perm_vencimiento <- prod(px_tau_cuenta)
+```
+
+### Valor presente, NPV, frecuencia de pérdida y CTE95
+
+```{r}
+# Factores de descuento
+factor_cargos <- (1 + descuento_E)^(-(0:(numero_anios - 1)))
+factor_complemento <- (1 + descuento_E)^(-numero_anios)
+
+# VP de los cargos y del complemento, ponderados por permanencia
+VP_cargos <- as.vector(cargos %*% (perm_inicio * factor_cargos))
+VP_complemento_100 <- complemento_100 * perm_vencimiento * factor_complemento
+VP_complemento_110 <- complemento_110 * perm_vencimiento * factor_complemento
+
+# NPV del proveedor
+NPV_100 <- VP_cargos - VP_complemento_100
+NPV_110 <- VP_cargos - VP_complemento_110
+
+# CTE95: media de las 50 mayores perdidas (perdida = -NPV)
+cte95 <- function(npv) mean(sort(-npv, decreasing = TRUE)[1:50])
+
+comparacion_proveedor <- data.frame(
+  Garantia = c(garantia_100, garantia_110),
+  Probabilidad_activacion = c(
+    mean(complemento_100 > 0),
+    mean(complemento_110 > 0)
+  ),
+  VP_complemento_medio = c(mean(VP_complemento_100), mean(VP_complemento_110)),
+  NPV_medio = c(mean(NPV_100), mean(NPV_110)),
+  Frecuencia_perdida = c(mean(NPV_100 < 0), mean(NPV_110 < 0)),
+  CTE95 = c(cte95(NPV_100), cte95(NPV_110))
+)
+
+View(comparacion_proveedor)
+
+# Tabla para el informe
+comparacion_proveedor_md <- comparacion_proveedor %>%
+  transmute(
+    `Garantía` = format(Garantia, big.mark = " "),
+    `Probabilidad de activación (%)` = Probabilidad_activacion * 100,
+    `VP medio del complemento` = VP_complemento_medio,
+    `NPV medio` = NPV_medio,
+    `Frecuencia de pérdida (%)` = Frecuencia_perdida * 100,
+    CTE95 = CTE95
+  ) %>%
+  tabla_md(digits = 2)
+comparacion_proveedor_md
+
+write.csv2(
+  comparacion_proveedor,
+  file = file.path(carpeta_tablas, "comparacion_proveedor.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```
+
+### Histograma comparativo del NPV
+
+```{r, fig.width = 8, fig.height = 6}
+datos_hist <- data.frame(
+  Garantia = rep(
+    c("Garantía de 100 000", "Garantía de 110 000"),
+    each = numero_trayectorias
+  ),
+  NPV = c(NPV_100, NPV_110)
+)
+
+grafico_hist <- ggplot(datos_hist, aes(x = NPV)) +
+  geom_histogram(
+    binwidth = 2500,
+    boundary = 0,
+    fill = "steelblue",
+    colour = "white"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_x_continuous(breaks = seq(-40000, 20000, by = 10000)) +
+  facet_wrap(~Garantia, ncol = 1) +
+  labs(x = "NPV del proveedor", y = "Número de trayectorias") +
+  theme_minimal()
+
+grafico_hist
+ggsave(
+  file.path(carpeta_tablas, "Histograma_NPV_garantias.png"),
+  grafico_hist,
+  width = 8,
+  height = 6
+)
+```
+
+### Detalle de una trayectoria
+
+```{r}
+# Primera trayectoria en la que se activa la garantia de 100 000
+trayectoria <- which(complemento_100 > 0)[1]
+trayectoria
+
+# Cuenta año a año
+detalle_cuenta <- data.frame(
+  Anio = 1:numero_anios,
+  Saldo_inicio = saldos_inicio[trayectoria, ],
+  Cargo = cargos[trayectoria, ],
+  Logrendimiento = logrendimientos[trayectoria, ],
+  Saldo_cierre = saldos_cierre[trayectoria, ],
+  Permanencia_inicio = perm_inicio,
+  Factor_descuento = factor_cargos
+)
+detalle_cuenta$VP_cargo <- detalle_cuenta$Cargo *
+  detalle_cuenta$Permanencia_inicio *
+  detalle_cuenta$Factor_descuento
+View(detalle_cuenta)
+
+# Complemento y NPV con cada garantia
+detalle_garantias <- data.frame(
+  Garantia = c(garantia_100, garantia_110),
+  Saldo_final = saldo_final[trayectoria],
+  Complemento = c(complemento_100[trayectoria], complemento_110[trayectoria]),
+  VP_complemento = c(
+    VP_complemento_100[trayectoria],
+    VP_complemento_110[trayectoria]
+  ),
+  VP_cargos = VP_cargos[trayectoria],
+  NPV = c(NPV_100[trayectoria], NPV_110[trayectoria])
+)
+View(detalle_garantias)
+
+# Tablas en Markdown para el informe (detalle de la trayectoria)
+detalle_garantias_md <- detalle_garantias %>%
+  mutate(Garantia = format(Garantia, big.mark = " ")) %>%
+  tabla_md(digits = 2)
+detalle_garantias_md
+
+# Anexo: cuenta año a año
+detalle_cuenta_md <- detalle_cuenta %>%
+  mutate(Anio = as.character(Anio)) %>%
+  kable(
+    format = "markdown",
+    digits = c(0, 2, 2, 4, 2, 5, 5, 2),
+    format.args = list(nsmall = 2, big.mark = " ", decimal.mark = ",")
+  )
+detalle_cuenta_md
+
+write.csv2(
+  detalle_cuenta,
+  file = file.path(carpeta_tablas, "detalle_cuenta_trayectoria.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
+write.csv2(
+  detalle_garantias,
+  file = file.path(carpeta_tablas, "detalle_garantias_trayectoria.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```
+
+### Verificaciones de la sección E
+
+```{r}
+# Las 50 peores trayectorias bajo cada garantia
+peores_100 <- order(NPV_100)[1:50]
+peores_110 <- order(NPV_110)[1:50]
+
+verificaciones_E <- data.frame(
+  Verificacion = c(
+    "Garantia mayor no disminuye el complemento en ninguna trayectoria",
+    "Garantia mayor no aumenta el NPV en ninguna trayectoria",
+    "Las 50 peores trayectorias son las mismas con ambas garantias",
+    "Las 50 peores trayectorias activan ambas garantias"
+  ),
+  Cumple = c(
+    all(complemento_110 >= complemento_100),
+    all(NPV_110 <= NPV_100 + 1e-10),
+    setequal(peores_100, peores_110),
+    all(complemento_100[peores_100] > 0)
+  )
+)
+View(verificaciones_E)
+
+# La diferencia del CTE95 debe ser 10 000 x factor VP/complemento
+factor_vp_complemento <- perm_vencimiento * factor_complemento
+factor_vp_complemento
+cte95(NPV_110) - cte95(NPV_100)
+10000 * factor_vp_complemento
+
+write.csv2(
+  verificaciones_E,
+  file = file.path(carpeta_tablas, "verificaciones_E.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+```

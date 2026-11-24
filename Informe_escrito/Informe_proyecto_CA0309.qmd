@@ -27,6 +27,10 @@ format:
    include-before-body: Portada.tex
 ---
 
+```{=latex}
+\setcounter{page}{0} 
+```
+
 \newpage
 
 El objetivo del presente informe radica en presentar los principales resultados obtenidos a partir tanto de las proyecciones como de las estimaciones ejecutadas en el archivo `Codigo_proyecto_CA0309.qmd`. En caso de que se requiera efectuar consultas a mayor profundidad sobre los datos extendidos, es preciso dirigirse al recurso mencionado y revisar el apartado denominado de la misma manera que la sección en la que está contenida la información a consultar. Asimismo, es importante destacar que la división de los resultados responde a las secciones establecidas en las indicaciones del proyecto: A. Población, decrementos y multiestado; B. Varias vidas; C. Flujos, reservas suministradas y profit testing; D. Escenario adverso y respaldo de las reservas; E. Equity-linked y rentabilidad estocástica y F. Interpretación conceptual de NIIF 17.
@@ -205,7 +209,7 @@ Los importes están en unidades monetarias. La probabilidad de activación es la
 
 La @fig-hist-npv muestra el NPV del proveedor con los mismos cortes y escalas en ambos paneles; la línea punteada marca el NPV igual a cero. En ambos paneles la mayor parte de las trayectorias se concentra a la derecha de cero, con la barra más alta entre 7 500 y 10 000, y ningún valor supera 15 000. A la izquierda de cero hay una cola larga que llega hasta cerca de -34 000 con la garantía de 100 000 y hasta cerca de -41 000 con la de 110 000. Con la garantía de 110 000 la barra más alta disminuye de aproximadamente 410 a 310 trayectorias y la cola izquierda se extiende y pesa más.
 
-![Histograma comparativo del NPV del proveedor según la garantía (1 000 trayectorias; mismos cortes y escalas en ambos paneles).](Histograma_NPV_garantias.png){#fig-hist-npv width="67%" fig-pos="H"}
+![Histograma comparativo del NPV del proveedor según la garantía (1 000 trayectorias; mismos cortes y escalas en ambos paneles).](Histograma_NPV_garantias.png){#fig-hist-npv width="60%" fig-pos="H"}
 
 ## Detalle de una trayectoria
 
@@ -284,7 +288,7 @@ En el caso, liberar reserva no genera un cobro y recibir aportes incrementa el e
 | Integrante | Herramienta y uso | Verificación |
 |:-----------------------|:-----------------------|:-----------------------|
 | Estefanía | ChatGPT: redacción y ortografía de las secciones B y F, revisión del código de estas secciones y ayuda en exportar las tablas en .csv. | Al final del código de la sección B se ejecutó una breve verificación de los puntos importantes. Toda la información se contrastó con el Bowers para varias vidas. |
-| Alexandra | \[completar\] | \[completar\] |
+| Alexandra | ChatGPT: construcción de tablas separadas anualmente para la proyección a cinco años| Se verificó la coherencia de las tablas: los activos finales corresponden a los activos iniciales del año siguiente, verificación de varias filas al efectuar multiplicaciones por las probabilidades construidas. |
 | César | Claude: corrección y optimización del código R de C y D, verificación numérica, ortografía y redacción del informe, y revisión de la completitud de C y D frente al enunciado. | Contraste con lo visto en clase y con el capítulo 12 de Dickson. |
 | Daniela | Claude: corrección del código de E, sugerencias para el histograma y orientación para exportar las tablas. | Se ejecutó el código completo y se comprobó la consistencia con los resultados y las verificaciones de E. |
 
